@@ -1,0 +1,9 @@
+@model PanificaB2B.Contratos.CredenciaisEntrada
+@{ ViewData["Title"] = "Entrar"; }
+<h1>Entrar na distribuidora</h1>
+<form asp-action="Entrar" method="post" class="col-md-5">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="Login"></label><input asp-for="Login" class="form-control" autocomplete="username" /></div>
+    <div class="mb-3"><label asp-for="Senha"></label><input asp-for="Senha" class="form-control" autocomplete="current-password" /></div>
+    <button class="btn btn-primary" type="submit">Entrar</button>
+</form>

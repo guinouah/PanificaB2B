@@ -1,0 +1,8 @@
+@model List<PanificaB2B.Contratos.ClienteDto>
+@{ ViewData["Title"] = "Clientes"; }
+<h1>Clientes</h1>
+<p>O território define a carteira comercial. A ordem de visita pertence ao roteiro.</p>
+@if (User.IsInRole("Administrador") || User.IsInRole("GestorComercial")) { <a asp-action="Novo" class="btn btn-primary mb-3">Cadastrar cliente</a> }
+<div class="table-responsive"><table class="table"><thead><tr><th>Nome</th><th>Documento</th><th>Contato</th><th>Endereço</th><th>Situação</th></tr></thead><tbody>
+@foreach (var item in Model) { <tr><td><a asp-action="Detalhe" asp-route-id="@item.Id">@item.Nome</a></td><td>@item.Documento</td><td>@item.Email<br />@item.Telefone</td><td>@item.Endereco</td><td>@(item.Ativo ? "Ativo" : "Inativo") @if (User.IsInRole("Administrador") || User.IsInRole("GestorComercial")) { <a asp-action="Editar" asp-route-id="@item.Id">Editar</a> }</td></tr> }
+</tbody></table></div>

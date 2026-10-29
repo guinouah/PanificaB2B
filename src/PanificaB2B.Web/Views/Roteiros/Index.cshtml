@@ -1,0 +1,9 @@
+@model List<PanificaB2B.Contratos.RoteiroDto>
+@{ ViewData["Title"] = "Roteiros"; string[] dias = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"]; }
+<h1>Roteiros de visita</h1>
+<p><a asp-action="Novo" class="btn btn-primary">Novo roteiro</a></p>
+@foreach (var roteiro in Model)
+{
+    <section class="card my-3"><div class="card-body"><h2 class="h5">@roteiro.Nome</h2><p>@dias[roteiro.DiaSemana] · @(roteiro.Ativo ? "Ativo" : "Inativo") · <a asp-action="Editar" asp-route-id="@roteiro.Id">Organizar / editar</a></p>
+    <table class="table"><thead><tr><th>Sequência</th><th>Cliente</th></tr></thead><tbody>@foreach (var visita in roteiro.Visitas) { <tr><td>@visita.Sequencia</td><td>@visita.NomeCliente</td></tr> }</tbody></table></div></section>
+}

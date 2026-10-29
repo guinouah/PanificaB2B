@@ -1,0 +1,19 @@
+@model PanificaB2B.Web.Models.FormProduto
+@{ ViewData["Title"] = "Produto"; }
+<h1>@(ViewData["Id"] is null ? "Novo produto" : "Editar produto")</h1>
+<form method="post" asp-action="@ViewData["Acao"]" asp-route-id="@ViewData["Id"]" class="form-panel">
+<div asp-validation-summary="All" class="text-danger"></div><input type="hidden" asp-for="Entrada.Versao" />
+<label asp-for="Entrada.Codigo">Código</label><input asp-for="Entrada.Codigo" class="form-control" required maxlength="30" />
+<label asp-for="Entrada.Nome">Nome</label><input asp-for="Entrada.Nome" class="form-control" required maxlength="150" />
+<label asp-for="Entrada.GrupoId">Grupo</label><select asp-for="Entrada.GrupoId" class="form-select" required><option value="">Selecione</option>@foreach (var g in Model.Grupos) { <option value="@g.Id">@g.Nome @(g.Ativo ? "" : "(inativo)")</option> }</select>
+<label asp-for="Entrada.Unidade">Unidade de venda (UN, KG, saco, balde...)</label><input asp-for="Entrada.Unidade" class="form-control" required maxlength="15" />
+<label asp-for="Entrada.Preco">Preço normal (R$)</label><input asp-for="Entrada.Preco" type="number" min="0.01" step="0.01" class="form-control" required />
+<fieldset><legend>Promoção e novidade</legend>
+<label asp-for="Entrada.PrecoPromocional">Preço promocional (opcional)</label><input asp-for="Entrada.PrecoPromocional" type="number" min="0.01" step="0.01" class="form-control" />
+<label asp-for="Entrada.PromocaoInicio">Início da promoção</label><input asp-for="Entrada.PromocaoInicio" type="date" class="form-control" />
+<label asp-for="Entrada.PromocaoFim">Fim da promoção</label><input asp-for="Entrada.PromocaoFim" type="date" class="form-control" />
+<label asp-for="Entrada.NovidadeAte">Destacar como novo até</label><input asp-for="Entrada.NovidadeAte" type="date" class="form-control" />
+</fieldset>
+<label class="check"><input asp-for="Entrada.Ativo" /> Ativo</label>
+<button class="btn btn-primary">Salvar</button> <a asp-action="Index">Voltar</a>
+</form>

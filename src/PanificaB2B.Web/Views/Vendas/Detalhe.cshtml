@@ -1,0 +1,12 @@
+@model PanificaB2B.Contratos.VendaDto
+@{ ViewData["Title"] = "Venda " + Model.Numero; }
+<h1>Venda @Model.Numero</h1><p class="notice">Nota simulada para demonstração acadêmica · sem validade fiscal.</p>
+<p>Data: @Model.Data.ToString("dd/MM/yyyy") · Cliente: <strong>@Model.Cliente</strong></p><p>Vendedor: @Model.Vendedor · Pagamento: @Model.CondicaoPagamento</p>
+<p>Situação: @(Model.Cancelada ? "Cancelada" : Model.Entregue ? "Entregue" : "A entregar")</p>
+<table class="table"><thead><tr><th>Produto</th><th>Quantidade entregue/faturada</th><th>Preço</th><th>Total</th></tr></thead><tbody>@foreach (var i in Model.Itens) { <tr><td>@i.Produto</td><td>@i.Quantidade @i.Unidade</td><td>@i.PrecoUnitario.ToString("C")</td><td>@i.Total.ToString("C")</td></tr> }</tbody></table><h2>Total: @Model.Total.ToString("C")</h2>
+<div class="no-print"><button type="button" data-imprimir class="btn btn-outline-primary">Imprimir demonstrativo</button> @if (User.IsInRole("Administrador") || User.IsInRole("Financeiro")) { <a asp-controller="Financeiro" asp-action="Index">Contas a receber</a> }
+@if (!Model.Cancelada && !Model.Entregue) {
+@if (User.IsInRole("Administrador") || User.IsInRole("EstoqueExpedicao")) { <form asp-action="Entregar" asp-route-id="@Model.Id" method="post" class="my-3"><input name="versao" type="hidden" value="@Model.Versao" /><button class="btn btn-primary">Confirmar entrega integral</button></form> }
+@if (User.IsInRole("Administrador") || User.IsInRole("GestorComercial")) { <details><summary>Estornar antes da entrega</summary><p>O estorno devolve os itens aos lotes e cancela as parcelas. Só é permitido sem recebimentos.</p><form asp-action="Cancelar" asp-route-id="@Model.Id" method="post"><input name="Versao" type="hidden" value="@Model.Versao" /><input name="Motivo" required maxlength="200" placeholder="Motivo" class="form-control" /><button class="btn btn-danger">Confirmar estorno</button></form></details> }
+}
+<a asp-action="Index">Voltar</a></div>

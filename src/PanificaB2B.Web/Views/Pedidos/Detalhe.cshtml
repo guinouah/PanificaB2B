@@ -1,0 +1,17 @@
+@model PanificaB2B.Web.Models.FormFaturamento
+@using PanificaB2B.Contratos
+@{ ViewData["Title"] = "Atendimento do pedido"; var p = Model.Pedido; var hoje = DateOnly.FromDateTime(DateTime.Today); }
+<h1>Atendimento do pedido</h1><p><strong>@p.Cliente</strong> · vendedor @p.Vendedor · @p.CondicaoPagamento</p><p>Situação: @p.Situacao · solicitado: @p.TotalPedido.ToString("C")</p><p>@p.Observacao</p>
+<div asp-validation-summary="All" class="text-danger"></div>
+@if (p.Situacao == SituacaoPedido.Recebido) {
+<p>Defina o que cada cliente receberá. O saldo é revalidado na confirmação. Quantidade zero corta o item.</p>
+<form asp-action="Faturar" asp-route-id="@p.Id" method="post"><input asp-for="Corte.Versao" type="hidden" />
+<table class="table"><thead><tr><th>Produto</th><th>Pedido</th><th>Saldo válido</th><th>Preço</th><th>Atender</th></tr></thead><tbody>
+@for (var i = 0; i < Model.Corte.Itens.Count; i++) { var item = p.Itens.Single(x => x.Id == Model.Corte.Itens[i].ItemId); <tr><td>@item.Produto (@item.Unidade)<input asp-for="Corte.Itens[i].ItemId" type="hidden" /></td><td>@item.QuantidadePedida</td><td>@Model.Lotes.Where(x => x.ProdutoId == item.ProdutoId && x.Validade >= hoje).Sum(x => x.Saldo)</td><td>@item.PrecoUnitario.ToString("C")</td><td><input asp-for="Corte.Itens[i].Quantidade" type="number" min="0" max="@item.QuantidadePedida.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="0.001" required class="form-control" /></td></tr> }
+</tbody></table><label asp-for="Corte.Motivo">Motivo do corte (obrigatório se houver corte)</label><input asp-for="Corte.Motivo" maxlength="200" class="form-control" /><button class="btn btn-primary">Confirmar corte e faturar</button></form>
+<details class="my-3"><summary>Cancelar pedido</summary><form asp-action="Cancelar" asp-route-id="@p.Id" method="post"><input type="hidden" name="Versao" value="@p.Versao" /><input name="Motivo" required maxlength="200" placeholder="Motivo" class="form-control" /><button class="btn btn-danger">Confirmar cancelamento</button></form></details>
+} else {
+<table class="table"><thead><tr><th>Produto</th><th>Pedido</th><th>Atendido</th><th>Cortado</th></tr></thead><tbody>@foreach (var item in p.Itens) { <tr><td>@item.Produto</td><td>@item.QuantidadePedida</td><td>@item.QuantidadeAtendida</td><td>@(item.QuantidadePedida - item.QuantidadeAtendida)</td></tr> }</tbody></table>
+@if (p.VendaId is { } vendaId) { <a asp-controller="Vendas" asp-action="Detalhe" asp-route-id="@vendaId" class="btn btn-primary">Ver venda e nota simulada</a> }
+}
+<a asp-action="Index">Voltar aos pedidos</a>

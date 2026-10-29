@@ -1,0 +1,21 @@
+@model PanificaB2B.Contratos.PainelDto
+@using PanificaB2B.Contratos
+@{ ViewData["Title"] = "Distribuidora B2B"; bool Tem(string perfis) => perfis.Split(',').Any(User.IsInRole); }
+<h1>Distribuidora de panificação</h1><p>Da carteira do vendedor ao recebimento da venda.</p>
+@if (ViewBag.Erro is string erro) { <div class="alert alert-warning">@erro</div> }
+<div class="dashboard">
+@if (Tem(Permissoes.ComercialFinanceiro)) { <article><strong>@Model.ClientesAtivos</strong><span>Clientes ativos</span></article> }
+@if (Tem(Permissoes.ConsultaEstoque)) { <article><strong>@Model.ProdutosAtivos</strong><span>Produtos ativos</span></article> }
+@if (Tem(Permissoes.Comercial)) { <article><strong>@Model.PedidosPendentes</strong><span>Pedidos para analisar</span></article> }
+@if (Tem(Permissoes.ComercialFinanceiro)) { <article><strong>@Model.Vendas.ToString("C")</strong><span>Vendas válidas</span></article> }
+@if (Tem(Permissoes.Financeiro)) { <article><strong>@Model.ContasAReceber.ToString("C")</strong><span>Principal a receber</span></article> }
+@if (Tem(Permissoes.Estoque)) { <article><strong>@Model.LotesVencidos</strong><span>Lotes vencidos com saldo</span></article> }
+</div>
+@if (Tem(Permissoes.Comercial)) {
+<h2>Operação comercial</h2><ol><li><a asp-controller="Cadastros" asp-action="Index">Estados, cidades, vendedores e territórios</a></li><li><a asp-controller="Clientes" asp-action="Index">Clientes</a> e <a asp-controller="Roteiros" asp-action="Index">roteiros</a></li><li><a asp-controller="Grupos" asp-action="Index">Grupos</a> e <a asp-controller="Produtos" asp-action="Index">produtos</a></li></ol>
+<p><a asp-controller="Pedidos" asp-action="Index" class="btn btn-primary">Analisar pedidos e fazer corte</a></p>
+}
+@if (Tem(Permissoes.Financeiro)) { <h2>Financeiro</h2><p><a asp-controller="Pagamentos" asp-action="Index" class="btn btn-outline-primary">Formas e condições</a> <a asp-controller="Financeiro" asp-action="Index" class="btn btn-primary">Contas a receber</a></p> }
+@if (Tem(Permissoes.Estoque)) { <h2>Estoque e expedição</h2><p><a asp-controller="Estoque" asp-action="Index" class="btn btn-primary">Lotes e movimentos</a></p> }
+<p><a asp-controller="Vendas" asp-action="Index" class="btn btn-outline-primary">Vendas e entregas</a></p>
+<p class="notice">Demonstração acadêmica: faturamento e nota fiscal simulados.</p>

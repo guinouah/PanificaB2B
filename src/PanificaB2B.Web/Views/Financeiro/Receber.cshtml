@@ -1,0 +1,10 @@
+@model PanificaB2B.Web.Models.FormReceber
+@{ ViewData["Title"] = "Receber título"; }
+<h1>Receber @Model.Titulo.Identificacao</h1><p>@Model.Titulo.Cliente · vencimento @Model.Titulo.Vencimento.ToString("dd/MM/yyyy")</p>
+<form method="get" class="inline-form"><input name="id" type="hidden" value="@Model.Titulo.Id" /><label>Data do recebimento <input name="data" type="date" value="@Model.Entrada.Data.ToString("yyyy-MM-dd")" required class="form-control" /></label><button class="btn btn-outline-primary">Recalcular para esta data</button></form>
+<p>Principal @Model.Titulo.SaldoPrincipal.ToString("C") + multa @Model.Titulo.Multa.ToString("C") + juros @Model.Titulo.Juros.ToString("C") − desconto @Model.Titulo.Desconto.ToString("C")</p>
+<form asp-action="Receber" asp-route-id="@Model.Titulo.Id" method="post" class="form-panel"><div asp-validation-summary="All" class="text-danger"></div><input asp-for="Entrada.Id" type="hidden" /><input asp-for="Entrada.Versao" type="hidden" /><input asp-for="Entrada.Data" type="hidden" />
+<label asp-for="Entrada.Valor">Valor integral para quitação</label><input asp-for="Entrada.Valor" type="number" step="0.01" readonly class="form-control" />
+<label asp-for="Entrada.FormaPagamentoId">Forma efetivamente utilizada</label><select asp-for="Entrada.FormaPagamentoId" required class="form-select">@foreach (var f in Model.Formas.Where(x => x.Ativo)) { <option value="@f.Id">@f.Nome</option> }</select>
+@if (!Model.Titulo.Pago && !Model.Titulo.Cancelado) { <button class="btn btn-primary">Confirmar recebimento em @Model.Entrada.Data.ToString("dd/MM/yyyy")</button> }
+<a asp-action="Index">Voltar</a></form>

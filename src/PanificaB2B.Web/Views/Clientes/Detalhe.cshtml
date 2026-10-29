@@ -1,0 +1,6 @@
+@model PanificaB2B.Web.Models.ClienteDetalhes
+@{ ViewData["Title"] = Model.Cliente.Nome; }
+<h1>@Model.Cliente.Nome</h1><p>@Model.Cliente.Endereco · @Model.Cliente.Telefone · @Model.Cliente.Email</p>
+@if (User.IsInRole("Administrador") || User.IsInRole("GestorComercial")) { <p><a asp-action="Editar" asp-route-id="@Model.Cliente.Id">Editar cadastro</a></p> }
+<h2>Dívida em @Model.Divida.DataConsulta.ToString("dd/MM/yyyy")</h2><p>Principal em aberto: @Model.Divida.PrincipalAberto.ToString("C") · vencido: @Model.Divida.PrincipalVencido.ToString("C") · quitação: @Model.Divida.ValorQuitacao.ToString("C")</p>
+<h2>Última compra efetiva por produto</h2><table class="table"><thead><tr><th>Produto</th><th>Data</th><th>Quantidade atendida</th><th>Preço unitário</th></tr></thead><tbody>@foreach (var c in Model.Compras) { <tr><td>@c.Produto</td><td>@c.Data.ToString("dd/MM/yyyy")</td><td>@c.Quantidade</td><td>@c.PrecoUnitario.ToString("C")</td></tr> }</tbody></table><a asp-action="Index">Voltar</a>

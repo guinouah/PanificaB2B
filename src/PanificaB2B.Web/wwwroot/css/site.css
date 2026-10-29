@@ -1,0 +1,62 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+  background: #f6f8fb;
+  color: #17273d;
+}
+
+main { padding-top: 1rem; }
+h1 { font-size: 1.9rem; margin-bottom: 1rem; }
+h2 { font-size: 1.35rem; margin-top: 1.6rem; }
+.navbar-nav { flex-wrap: wrap; }
+.navbar-brand { font-weight: 700; }
+.page-heading { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+.form-panel { max-width: 760px; padding: 1.5rem; background: white; border: 1px solid #dce3ed; border-radius: .6rem; }
+label { display: block; margin-top: .75rem; }
+.form-control, .form-select { margin-bottom: .65rem; }
+.inline-form { display: flex; flex-wrap: wrap; align-items: end; gap: .7rem; margin: .8rem 0; }
+.inline-form > .form-control { width: auto; }
+.inline-form > label { flex: 1; min-width: 120px; }
+.check { margin: 1rem 0; }
+.table { background: white; }
+.table td, .table th { vertical-align: middle; }
+.table .form-control { min-width: 90px; }
+.table tr.promocao > * { background: #fff0a8; color: #483800; }
+.table tr.novidade > * { background: #dff0ff; }
+.table tr.vencido > * { background: #ffe2e2; }
+.notice { border-left: 4px solid #de9c25; background: #fff5db; padding: .8rem 1rem; }
+.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.dashboard article { background: white; border: 1px solid #dce3ed; border-radius: .6rem; padding: 1.2rem; }
+.dashboard strong, .dashboard span { display: block; }
+.dashboard strong { color: #174d85; font-size: 1.5rem; }
+details { background: white; border: 1px solid #dce3ed; padding: .8rem; margin: .6rem 0; border-radius: .4rem; }
+fieldset { margin-top: 1rem; }
+@media print { header, footer, .no-print, .alert { display: none !important; } body { background: white; } }
+@media (max-width: 760px) { main { overflow-x: auto; } .navbar-collapse { display: block !important; } .navbar-toggler { display: none; } }
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}

@@ -1,0 +1,13 @@
+@model PanificaB2B.Contratos.GrupoProdutoEntrada
+@{ var id = ViewData["Id"] as Guid?; ViewData["Title"] = id is null ? "Novo grupo" : "Editar grupo"; }
+<h1>@ViewData["Title"]</h1>
+<form asp-action="@ViewData["Acao"]" asp-route-id="@id" method="post" class="col-md-6">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <input asp-for="Versao" type="hidden" />
+    <div class="mb-3"><label asp-for="Nome" class="form-label">Nome do grupo</label><input asp-for="Nome" class="form-control" maxlength="100" placeholder="Ex.: Fermentos" /><span asp-validation-for="Nome" class="text-danger"></span></div>
+    <div class="form-check mb-3"><input asp-for="Ativo" class="form-check-input" /><label asp-for="Ativo" class="form-check-label">Grupo ativo</label></div>
+    <p class="text-muted">Para deixar de utilizar um grupo, desmarque Grupo ativo. O cadastro será preservado.</p>
+    <button class="btn btn-primary" type="submit">Salvar</button>
+    <a class="btn btn-outline-secondary" asp-action="Index">Voltar</a>
+    @if (id is not null) { <a class="btn btn-link" asp-action="Editar" asp-route-id="@id">Recarregar cadastro</a> }
+</form>

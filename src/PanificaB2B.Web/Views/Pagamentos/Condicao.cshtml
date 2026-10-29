@@ -1,0 +1,22 @@
+@model PanificaB2B.Web.Models.FormCondicao
+@{ ViewData["Title"] = "Condição de pagamento"; }
+<h1>Condição de pagamento</h1>
+<form method="post" asp-action="@ViewData["Acao"]" asp-route-id="@ViewData["Id"]" class="form-panel">
+<div asp-validation-summary="All" class="text-danger"></div><input asp-for="Entrada.Versao" type="hidden" />
+<label asp-for="Entrada.Codigo">Código</label><input asp-for="Entrada.Codigo" required class="form-control" maxlength="30" />
+<label asp-for="Entrada.Nome">Descrição</label><input asp-for="Entrada.Nome" required class="form-control" maxlength="100" />
+<label asp-for="Entrada.MultaPercentual">Multa única por atraso (%)</label><input asp-for="Entrada.MultaPercentual" type="number" min="0" max="100" step="0.01" class="form-control" />
+<label asp-for="Entrada.JurosDiariosPercentual">Juros simples por dia (%)</label><input asp-for="Entrada.JurosDiariosPercentual" type="number" min="0" max="100" step="0.01" class="form-control" />
+<label asp-for="Entrada.DescontoDiarioPercentual">Desconto por dia de antecipação (%)</label><input asp-for="Entrada.DescontoDiarioPercentual" type="number" min="0" max="100" step="0.01" class="form-control" />
+<p>Regras acadêmicas: dias corridos, desconto limitado a 10% da parcela e recebimento integral de cada título. Os prazos partem da data da venda.</p>
+<h2>Parcelas (soma de 100%)</h2><div data-linhas="parcelas" data-prefixo="Entrada.Parcelas">
+@for (var i = 0; i < Model.Entrada.Parcelas.Count; i++) { <div class="inline-form" data-linha>
+<label>Dias <input asp-for="Entrada.Parcelas[i].Dias" type="number" min="0" max="3650" required class="form-control" /></label>
+<label>Percentual <input asp-for="Entrada.Parcelas[i].Percentual" type="number" min="0.01" max="100" step="0.01" required class="form-control" /></label>
+<label>Forma <select asp-for="Entrada.Parcelas[i].FormaPagamentoId" required class="form-select"><option value="">Selecione</option>@foreach (var f in Model.Formas.Where(x => x.Ativo || x.Id == Model.Entrada.Parcelas[i].FormaPagamentoId)) { <option value="@f.Id">@f.Nome</option> }</select></label>
+<button type="button" data-remover class="btn btn-outline-secondary">Remover</button></div> }
+</div>
+<template id="parcela-template"><div class="inline-form" data-linha><label>Dias <input name="Entrada.Parcelas[__i__].Dias" type="number" min="0" max="3650" value="7" required class="form-control" /></label><label>Percentual <input name="Entrada.Parcelas[__i__].Percentual" type="number" min="0.01" max="100" step="0.01" required class="form-control" /></label><label>Forma <select name="Entrada.Parcelas[__i__].FormaPagamentoId" required class="form-select"><option value="">Selecione</option>@foreach (var f in Model.Formas.Where(x => x.Ativo)) { <option value="@f.Id">@f.Nome</option> }</select></label><button type="button" data-remover class="btn btn-outline-secondary">Remover</button></div></template>
+<button type="button" data-adicionar="parcelas" data-template="parcela-template" class="btn btn-outline-primary">Adicionar parcela</button>
+<label class="check"><input asp-for="Entrada.Ativo" /> Ativa</label><button class="btn btn-primary">Salvar condição</button> <a asp-action="Index">Voltar</a>
+</form>

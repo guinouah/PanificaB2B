@@ -1,0 +1,10 @@
+@model PanificaB2B.Web.Models.EstoqueModel
+@{ ViewData["Title"] = "Estoque"; var hoje = DateOnly.FromDateTime(DateTime.Today); }
+<div class="page-heading"><h1>Estoque por lote</h1><a asp-action="Entrada" class="btn btn-primary">Registrar entrada</a></div>
+<p>Lotes vencidos permanecem no histórico e não podem ser vendidos. A saída utiliza primeiro o vencimento mais próximo.</p>
+<table class="table"><thead><tr><th>Produto</th><th>Lote</th><th>Validade</th><th>Saldo</th><th></th></tr></thead><tbody>
+@foreach (var l in Model.Lotes) { <tr class="@(l.Validade < hoje ? "vencido" : "")"><td>@l.Produto</td><td>@l.Codigo</td><td>@l.Validade.ToString("dd/MM/yyyy") @(l.Validade < hoje ? "Vencido" : "")</td><td>@l.Saldo @l.Unidade</td><td>@if (l.Saldo > 0) { <a asp-action="Perda" asp-route-id="@l.Id">Registrar perda</a> }</td></tr> }
+</tbody></table>
+<h2>Movimentos</h2><table class="table"><thead><tr><th>Quando</th><th>Produto / lote</th><th>Tipo</th><th>Quantidade</th><th>Motivo</th></tr></thead><tbody>
+@foreach (var m in Model.Movimentos) { <tr><td>@m.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td><td>@m.Produto / @m.Lote</td><td>@m.Tipo</td><td>@m.Quantidade</td><td>@m.Motivo</td></tr> }
+</tbody></table>

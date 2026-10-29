@@ -1,0 +1,12 @@
+@model PanificaB2B.Web.Models.PagamentosModel
+@{ ViewData["Title"] = "Pagamentos"; }
+<h1>Condições e formas de pagamento</h1>
+<h2>Formas</h2><p>O meio de pagamento de cada parcela: Pix, boleto, dinheiro...</p>
+<form asp-action="Forma" method="post" class="inline-form"><input name="Nome" placeholder="Nova forma" required maxlength="100" class="form-control" /><input name="Ativo" type="hidden" value="true" /><button class="btn btn-primary">Cadastrar forma</button></form>
+@foreach (var f in Model.Formas) {
+<form asp-action="Forma" method="post" class="inline-form"><input name="id" type="hidden" value="@f.Id" /><input name="Nome" value="@f.Nome" required maxlength="100" class="form-control" /><label><input name="Ativo" type="checkbox" value="true" checked="@f.Ativo" /> Ativa</label><input name="Ativo" type="hidden" value="false" /><button class="btn btn-outline-primary">Salvar</button></form>
+}
+<div class="page-heading"><h2>Condições</h2><a asp-action="NovaCondicao" class="btn btn-primary">Nova condição</a></div>
+<table class="table"><thead><tr><th>Condição</th><th>Parcelas</th><th>Encargos</th><th>Situação</th><th></th></tr></thead><tbody>
+@foreach (var c in Model.Condicoes) { <tr><td>@c.Codigo · @c.Nome</td><td>@foreach (var p in c.Parcelas) { <div>@p.Numero: @p.Percentual% em @p.Dias dias · @p.FormaPagamento</div> }</td><td>Multa @c.MultaPercentual% · juros @c.JurosDiariosPercentual%/dia</td><td>@(c.Ativo ? "Ativa" : "Inativa")</td><td><a asp-action="EditarCondicao" asp-route-id="@c.Id">Editar</a></td></tr> }
+</tbody></table>

@@ -1,0 +1,10 @@
+@model PanificaB2B.Contratos.CredenciaisEntrada
+@{ ViewData["Title"] = "Primeiro acesso"; }
+<h1>Primeiro acesso</h1>
+<p>Crie o administrador inicial da distribuidora. Use uma senha com pelo menos 12 caracteres.</p>
+<form asp-action="Configurar" method="post" class="col-md-5">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="Login"></label><input asp-for="Login" class="form-control" autocomplete="username" /></div>
+    <div class="mb-3"><label asp-for="Senha" minlength="12"></label><input asp-for="Senha" minlength="12" class="form-control" autocomplete="new-password" /></div>
+    <button class="btn btn-primary" type="submit">Criar administrador</button>
+</form>

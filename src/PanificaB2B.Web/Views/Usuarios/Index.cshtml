@@ -1,0 +1,14 @@
+@model FormUsuario
+@{ ViewData["Title"] = "Acessos"; }
+<h1>Acessos ao sistema</h1>
+<p>Somente Vendedor deve ter um vendedor comercial vinculado. Os outros quatro perfis utilizam o site.</p>
+<form asp-action="Index" method="post" class="col-md-6">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="Entrada.Login"></label><input asp-for="Entrada.Login" class="form-control" autocomplete="username" /></div>
+    <div class="mb-3"><label asp-for="Entrada.Senha" minlength="12">Senha inicial (mínimo 12 caracteres)</label><input asp-for="Entrada.Senha" minlength="12" class="form-control" autocomplete="new-password" /></div>
+    <div class="mb-3"><label asp-for="Entrada.Perfil"></label><select asp-for="Entrada.Perfil" class="form-select" asp-items="Html.GetEnumSelectList<PanificaB2B.Contratos.PerfilUsuario>()"></select></div>
+    <div class="mb-3"><label asp-for="Entrada.VendedorId">Vendedor vinculado</label><select asp-for="Entrada.VendedorId" class="form-select"><option value="">Sem vínculo (equipe da distribuidora)</option>@foreach (var vendedor in Model.Vendedores) { <option value="@vendedor.Id">@vendedor.Nome</option> }</select></div>
+    <button class="btn btn-primary" type="submit">Criar acesso</button>
+</form>
+<h2 class="h4 mt-4">Usuários cadastrados</h2>
+<ul>@foreach (var usuario in Model.Usuarios) { <li>@usuario.Login — @usuario.Perfil</li> }</ul>

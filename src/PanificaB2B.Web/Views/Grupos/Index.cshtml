@@ -1,0 +1,19 @@
+@model List<PanificaB2B.Contratos.GrupoProdutoDto>
+@{ ViewData["Title"] = "Grupos de produtos"; }
+<h1>Grupos de produtos</h1>
+<p>Organize as categorias, como fermentos, farinhas, misturas e margarinas.</p>
+@if (TempData["Sucesso"] is string mensagem) { <div class="alert alert-success" role="status">@mensagem</div> }
+<a class="btn btn-primary mb-3" asp-action="Novo">Novo grupo</a>
+@if (Model.Count == 0)
+{
+    <p class="text-muted">Nenhum grupo cadastrado. Clique em Novo grupo para começar.</p>
+}
+else
+{
+    <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Nome</th><th>Situação</th><th>Ações</th></tr></thead><tbody>
+    @foreach (var grupo in Model)
+    {
+        <tr><td>@grupo.Nome</td><td><span class="badge @(grupo.Ativo ? "bg-success" : "bg-secondary")">@(grupo.Ativo ? "Ativo" : "Inativo")</span></td><td><a asp-action="Editar" asp-route-id="@grupo.Id">Editar</a></td></tr>
+    }
+    </tbody></table></div>
+}

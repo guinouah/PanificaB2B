@@ -1,0 +1,11 @@
+@model PanificaB2B.Web.Models.PedidosModel
+@using PanificaB2B.Contratos
+@{ ViewData["Title"] = "Pedidos"; var hoje = DateOnly.FromDateTime(DateTime.Today); var demanda = Model.Pedidos.Where(x => x.Situacao == SituacaoPedido.Recebido).SelectMany(x => x.Itens).GroupBy(x => x.ProdutoId).ToList(); }
+<div class="page-heading"><h1>Pedidos recebidos</h1><a asp-action="Novo" class="btn btn-primary">Novo pedido no site</a></div>
+<p>Os pedidos do aplicativo aparecem aqui após o vendedor confirmar o envio. Analise a demanda antes de distribuir o estoque.</p>
+@if (demanda.Count > 0) { <h2>Demanda pendente de todos os vendedores</h2><table class="table"><thead><tr><th>Produto</th><th>Solicitado</th><th>Estoque válido</th><th>Falta</th></tr></thead><tbody>
+@foreach (var grupo in demanda) { var solicitado = grupo.Sum(x => x.QuantidadePedida); var disponivel = Model.Lotes.Where(x => x.ProdutoId == grupo.Key && x.Validade >= hoje).Sum(x => x.Saldo); <tr class="@(solicitado > disponivel ? "promocao" : "")"><td>@grupo.First().Produto</td><td>@solicitado</td><td>@disponivel</td><td>@Math.Max(0, solicitado - disponivel)</td></tr> }
+</tbody></table> }
+<table class="table"><thead><tr><th>Recebido</th><th>Cliente</th><th>Vendedor</th><th>Total solicitado</th><th>Situação</th><th></th></tr></thead><tbody>
+@foreach (var p in Model.Pedidos) { <tr><td>@p.RecebidoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td><td>@p.Cliente</td><td>@p.Vendedor</td><td>@p.TotalPedido.ToString("C")</td><td>@p.Situacao</td><td><a asp-action="Detalhe" asp-route-id="@p.Id">Analisar</a></td></tr> }
+</tbody></table>

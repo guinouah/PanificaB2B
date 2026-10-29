@@ -1,0 +1,7 @@
+@model PanificaB2B.Web.Models.FormPerda
+@{ ViewData["Title"] = "Perda de estoque"; }
+<h1>Registrar perda</h1><p>@Model.Lote?.Produto · lote @Model.Lote?.Codigo · saldo @Model.Lote?.Saldo</p>
+<form asp-action="Perda" method="post" class="form-panel"><div asp-validation-summary="All" class="text-danger"></div><input asp-for="Entrada.Id" type="hidden" /><input asp-for="Entrada.LoteId" type="hidden" /><input asp-for="Entrada.Versao" type="hidden" />
+<label asp-for="Entrada.Quantidade">Quantidade perdida</label><input asp-for="Entrada.Quantidade" type="number" min="0.001" step="0.001" required class="form-control" />
+<label asp-for="Entrada.Motivo">Motivo</label><input asp-for="Entrada.Motivo" required maxlength="200" class="form-control" />
+<button class="btn btn-danger">Confirmar perda</button> <a asp-action="Index">Voltar</a></form>

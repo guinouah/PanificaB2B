@@ -1,0 +1,33 @@
+@using PanificaB2B.Contratos
+@{ bool Tem(string perfis) => perfis.Split(',').Any(User.IsInRole); }
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>@ViewData["Title"] - Panifica B2B</title>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/PanificaB2B.Web.styles.css" asp-append-version="true" />
+</head><body>
+<header><nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom mb-3"><div class="container-fluid">
+<a class="navbar-brand" asp-controller="Home" asp-action="Index">Panifica B2B</a>
+<div class="navbar-collapse"><ul class="navbar-nav flex-grow-1">
+@if (User.Identity?.IsAuthenticated == true) {
+    @foreach (var item in new[] { ("Home", "Início", Permissoes.Equipe), ("Cadastros", "Cadastros", Permissoes.Comercial), ("Clientes", "Clientes", Permissoes.ComercialFinanceiro), ("Roteiros", "Roteiros", Permissoes.Comercial), ("Grupos", "Grupos", Permissoes.Comercial), ("Produtos", "Produtos", Permissoes.Comercial), ("Pagamentos", "Pagamentos", Permissoes.Financeiro), ("Estoque", "Estoque", Permissoes.Estoque), ("Pedidos", "Pedidos", Permissoes.Comercial), ("Vendas", "Vendas", Permissoes.Equipe), ("Financeiro", "Financeiro", Permissoes.Financeiro), ("Usuarios", "Acessos", "Administrador") }.Where(x => Tem(x.Item3))) {
+        <li class="nav-item"><a class="nav-link text-dark" asp-controller="@item.Item1" asp-action="Index">@item.Item2</a></li>
+    }
+}
+</ul>
+@if (User.Identity?.IsAuthenticated == true) {
+    <form asp-controller="Conta" asp-action="Sair" method="post"><button class="btn btn-outline-secondary" type="submit">Sair (@User.Identity.Name)</button></form>
+}
+</div></div></nav></header>
+<div class="container"><main role="main" class="pb-3">
+@if (TempData["Sucesso"] is string sucesso) { <div class="alert alert-success" role="status">@sucesso</div> }
+@if (TempData["Erro"] is string erro) { <div class="alert alert-danger" role="alert">@erro</div> }
+@RenderBody()
+</main></div>
+<footer class="border-top footer text-muted"><div class="container">Panifica B2B · Demonstração acadêmica</div></footer>
+<script src="~/lib/jquery/dist/jquery.min.js"></script><script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body></html>

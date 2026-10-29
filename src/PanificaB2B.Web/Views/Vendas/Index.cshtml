@@ -1,0 +1,5 @@
+@model List<PanificaB2B.Contratos.VendaDto>
+@{ ViewData["Title"] = "Vendas"; }
+<h1>Vendas</h1><table class="table"><thead><tr><th>Número</th><th>Data</th><th>Cliente</th><th>Vendedor</th><th>Total</th><th>Situação</th><th></th></tr></thead><tbody>
+@foreach (var v in Model) { <tr><td>@v.Numero</td><td>@v.Data.ToString("dd/MM/yyyy")</td><td>@v.Cliente</td><td>@v.Vendedor</td><td>@v.Total.ToString("C")</td><td>@(v.Cancelada ? "Cancelada" : v.Entregue ? "Entregue" : "A entregar")</td><td><a asp-action="Detalhe" asp-route-id="@v.Id">Abrir</a></td></tr> }
+</tbody></table>
