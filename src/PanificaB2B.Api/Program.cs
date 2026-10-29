@@ -22,6 +22,7 @@ builder.Services.AddScoped<CatalogoService>();
 builder.Services.AddScoped<EstoqueService>();
 builder.Services.AddScoped<FinanceiroService>();
 builder.Services.AddScoped<PedidosService>();
+builder.Services.AddScoped<DemonstracaoService>();
 builder.Services.AddSingleton<SenhasService>();
 builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(localData, "ChavesAcesso"))).SetApplicationName("PanificaB2B.Api");
 builder.Services.AddAuthentication(BearerTokenDefaults.AuthenticationScheme).AddBearerToken(o => o.BearerTokenExpiration = TimeSpan.FromMinutes(30));

@@ -1,17 +1,32 @@
 @model PanificaB2B.Web.Models.FormFaturamento
 @using PanificaB2B.Contratos
-@{ ViewData["Title"] = "Atendimento do pedido"; var p = Model.Pedido; var hoje = DateOnly.FromDateTime(DateTime.Today); }
-<h1>Atendimento do pedido</h1><p><strong>@p.Cliente</strong> · vendedor @p.Vendedor · @p.CondicaoPagamento</p><p>Situação: @p.Situacao · solicitado: @p.TotalPedido.ToString("C")</p><p>@p.Observacao</p>
-<div asp-validation-summary="All" class="text-danger"></div>
-@if (p.Situacao == SituacaoPedido.Recebido) {
-<p>Defina o que cada cliente receberá. O saldo é revalidado na confirmação. Quantidade zero corta o item.</p>
-<form asp-action="Faturar" asp-route-id="@p.Id" method="post"><input asp-for="Corte.Versao" type="hidden" />
-<table class="table"><thead><tr><th>Produto</th><th>Pedido</th><th>Saldo válido</th><th>Preço</th><th>Atender</th></tr></thead><tbody>
-@for (var i = 0; i < Model.Corte.Itens.Count; i++) { var item = p.Itens.Single(x => x.Id == Model.Corte.Itens[i].ItemId); <tr><td>@item.Produto (@item.Unidade)<input asp-for="Corte.Itens[i].ItemId" type="hidden" /></td><td>@item.QuantidadePedida</td><td>@Model.Lotes.Where(x => x.ProdutoId == item.ProdutoId && x.Validade >= hoje).Sum(x => x.Saldo)</td><td>@item.PrecoUnitario.ToString("C")</td><td><input asp-for="Corte.Itens[i].Quantidade" type="number" min="0" max="@item.QuantidadePedida.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="0.001" required class="form-control" /></td></tr> }
-</tbody></table><label asp-for="Corte.Motivo">Motivo do corte (obrigatório se houver corte)</label><input asp-for="Corte.Motivo" maxlength="200" class="form-control" /><button class="btn btn-primary">Confirmar corte e faturar</button></form>
-<details class="my-3"><summary>Cancelar pedido</summary><form asp-action="Cancelar" asp-route-id="@p.Id" method="post"><input type="hidden" name="Versao" value="@p.Versao" /><input name="Motivo" required maxlength="200" placeholder="Motivo" class="form-control" /><button class="btn btn-danger">Confirmar cancelamento</button></form></details>
-} else {
-<table class="table"><thead><tr><th>Produto</th><th>Pedido</th><th>Atendido</th><th>Cortado</th></tr></thead><tbody>@foreach (var item in p.Itens) { <tr><td>@item.Produto</td><td>@item.QuantidadePedida</td><td>@item.QuantidadeAtendida</td><td>@(item.QuantidadePedida - item.QuantidadeAtendida)</td></tr> }</tbody></table>
-@if (p.VendaId is { } vendaId) { <a asp-controller="Vendas" asp-action="Detalhe" asp-route-id="@vendaId" class="btn btn-primary">Ver venda e nota simulada</a> }
+@using System.Globalization
+@{
+    ViewData["Title"] = "Atendimento do pedido"; var p=Model.Pedido; var hoje=DateOnly.FromDateTime(DateTime.Today);
+    var recebido=p.Situacao==SituacaoPedido.Recebido;
+    var previa = recebido ? Model.Corte.Itens.Sum(c=>decimal.Round(p.Itens.Single(i=>i.Id==c.ItemId).PrecoUnitario*c.Quantidade,2,MidpointRounding.AwayFromZero)) : p.Itens.Sum(i=>decimal.Round(i.PrecoUnitario*i.QuantidadeAtendida,2,MidpointRounding.AwayFromZero));
+    var situacao = p.Situacao switch { SituacaoPedido.Recebido=>"Aguardando análise", SituacaoPedido.Faturado=>"Faturado", SituacaoPedido.FaturadoParcialmente=>"Faturado com corte", SituacaoPedido.NaoAtendido=>"Não atendido", _=>"Cancelado" };
 }
-<a asp-action="Index">Voltar aos pedidos</a>
+<div class="page-heading"><div><span class="eyebrow">PEDIDOS E CORTES / ATENDIMENTO</span><h1>@p.Cliente</h1><p>Pedido recebido em @p.RecebidoEm.ToLocalTime().ToString("dd/MM/yyyy 'às' HH:mm")</p></div><a asp-action="Index" class="btn btn-outline-secondary">← Voltar aos pedidos</a></div>
+<div class="detail-strip"><span>Vendedor<strong>@p.Vendedor</strong></span><span>Condição de pagamento<strong>@p.CondicaoPagamento</strong></span><span>Situação<strong>@situacao</strong></span><span>Cliente<strong><a asp-controller="Clientes" asp-action="Detalhe" asp-route-id="@p.ClienteId">Ver compras e dívida →</a></strong></span></div>
+@if (!string.IsNullOrWhiteSpace(p.Observacao)) { <p class="notice"><strong>Observação do pedido:</strong> @p.Observacao</p> }
+@if(Model.Historico is not null){<partial name="_HistoricoPagamento" model="Model.Historico" />}
+<div asp-validation-summary="All" class="text-danger" role="alert"></div>
+@if (recebido) {
+<form asp-action="Faturar" asp-route-id="@p.Id" method="post" data-cut-form>
+<input asp-for="Corte.Versao" type="hidden" />
+<div class="cut-layout"><div><section class="panel mt-0"><div class="panel-head"><div><h2>Defina o atendimento</h2><p>Informe a quantidade que este cliente receberá. Zero corta o item inteiro.</p></div></div>
+<div class="table-responsive"><table class="table"><thead><tr><th>Produto</th><th class="numeric">Pedido</th><th class="numeric">Saldo válido</th><th class="numeric">Preço</th><th class="numeric">Atender</th><th class="numeric">Cortado</th></tr></thead><tbody>
+@for (var i=0;i<Model.Corte.Itens.Count;i++) {
+    var item=p.Itens.Single(x=>x.Id==Model.Corte.Itens[i].ItemId);
+    var saldo=Model.Lotes.Where(x=>x.ProdutoId==item.ProdutoId && x.Validade>=hoje).Sum(x=>x.Saldo);
+    <tr data-cut-row data-requested="@item.QuantidadePedida.ToString(CultureInfo.InvariantCulture)" data-price-cents="@((long)decimal.Round(item.PrecoUnitario*100,0,MidpointRounding.AwayFromZero))" data-stock="@saldo.ToString(CultureInfo.InvariantCulture)"><td><strong>@item.Produto</strong><small>@item.Unidade</small><input asp-for="Corte.Itens[i].ItemId" type="hidden" /></td><td class="numeric">@item.QuantidadePedida.ToString("0.###")</td><td class="numeric">@saldo.ToString("0.###")</td><td class="numeric">@item.PrecoUnitario.ToString("C")</td><td><input asp-for="Corte.Itens[i].Quantidade" type="number" min="0" max="@item.QuantidadePedida.ToString(CultureInfo.InvariantCulture)" step="0.001" required class="form-control cut-input" data-cut-quantity aria-label="Quantidade a atender de @item.Produto" /><span asp-validation-for="Corte.Itens[i].Quantidade" class="text-danger"></span></td><td class="numeric cut-preview" data-cut-removed>@Math.Max(0,item.QuantidadePedida-Model.Corte.Itens[i].Quantidade).ToString("0.###")</td></tr>
+}
+</tbody></table></div><div class="cut-form-footer"><label asp-for="Corte.Motivo">Motivo do corte</label><input asp-for="Corte.Motivo" maxlength="200" class="form-control" placeholder="Ex.: estoque insuficiente para atender a demanda" data-cut-reason aria-describedby="motivo-ajuda" /><small id="motivo-ajuda">Obrigatório quando qualquer quantidade for reduzida.</small></div></section>
+<p class="notice"><strong>Conferência na confirmação.</strong> O estoque é revalidado antes de faturar. Somente o atendido gera venda e parcelas; corte total encerra o pedido sem cobrança.</p></div>
+<aside class="cut-summary"><h2>Resumo do atendimento</h2><div class="summary-line"><span>Valor solicitado</span><strong>@p.TotalPedido.ToString("C")</strong></div><div class="summary-line"><span>Redução por corte</span><strong data-cut-discount>@((p.TotalPedido-previa).ToString("C"))</strong></div><div class="summary-total"><span>Prévia a faturar</span><strong data-cut-total>@previa.ToString("C")</strong></div><p class="summary-hint" data-cut-warning role="status">Confira as quantidades e a condição de pagamento antes de confirmar.</p><button class="btn btn-primary w-100 mt-3" type="submit">Confirmar corte e faturar</button><p class="summary-hint">O valor definitivo é calculado pela central ao confirmar.</p></aside></div></form>
+<details class="no-print"><summary>Cancelar este pedido</summary><form asp-action="Cancelar" asp-route-id="@p.Id" method="post"><input type="hidden" name="Versao" value="@p.Versao" /><label for="cancelamento-motivo">Motivo do cancelamento</label><input id="cancelamento-motivo" name="Motivo" required maxlength="200" class="form-control" /><button class="btn btn-danger" type="submit">Confirmar cancelamento</button></form></details>
+} else {
+<section class="panel"><div class="panel-head"><div><h2>Resultado do atendimento</h2><p>Comparação entre o solicitado e o efetivamente atendido.</p></div><span class="status status-info">@situacao</span></div><div class="table-responsive"><table class="table"><thead><tr><th>Produto</th><th class="numeric">Pedido</th><th class="numeric">Atendido</th><th class="numeric">Cortado</th></tr></thead><tbody>@foreach (var item in p.Itens) { <tr><td><strong>@item.Produto</strong><small>@item.Unidade</small></td><td class="numeric">@item.QuantidadePedida.ToString("0.###")</td><td class="numeric">@item.QuantidadeAtendida.ToString("0.###")</td><td class="numeric">@((item.QuantidadePedida-item.QuantidadeAtendida).ToString("0.###"))</td></tr> }</tbody></table></div></section>
+@if (p.VendaId is { } vendaId) { <a asp-controller="Vendas" asp-action="Detalhe" asp-route-id="@vendaId" class="btn btn-primary">Ver venda e nota simulada →</a> }
+}

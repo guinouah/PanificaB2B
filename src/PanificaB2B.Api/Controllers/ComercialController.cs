@@ -59,6 +59,9 @@ public sealed class ComercialController(DistribuidoraDbContext db, PedidosServic
         var titulos = (await financeiro.Titulos(Hoje, id)).Where(x => !x.Pago && !x.Cancelado).ToList();
         return Ok(new DividaClienteDto(id, Hoje, titulos.Sum(x => x.SaldoPrincipal), titulos.Where(x => x.Vencimento < Hoje).Sum(x => x.SaldoPrincipal), titulos.Sum(x => x.ValorQuitacao), titulos));
     }
+    [Authorize(Roles = Permissoes.ComercialFinanceiro + ",Vendedor"), HttpGet("clientes/{id:guid}/historico-pagamentos")]
+    public async Task<IActionResult> HistoricoPagamentos(Guid id) =>
+        await pedidos.PodeCliente(id,User.Identidade()) ? Ok(await financeiro.Historico(id)) : NotFound();
     [Authorize(Roles = Permissoes.Equipe), HttpGet("painel") ]
     public async Task<IActionResult> Painel()
     {

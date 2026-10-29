@@ -43,7 +43,9 @@ public static partial class Program
     }
     public static async Task Main(string[] args)
     {
-        var raiz = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+        var diretorio = new DirectoryInfo(AppContext.BaseDirectory);
+        while(diretorio is not null && !File.Exists(Path.Combine(diretorio.FullName,"PanificaB2B.sln")))diretorio=diretorio.Parent;
+        var raiz=diretorio?.FullName??throw new InvalidOperationException("A solução PanificaB2B.sln não foi localizada.");
         var pasta = Path.Combine(raiz, "tests", "PanificaB2B.Integracao", "App_Data", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(pasta);
         Dictionary<string, long>? contagens = null;
@@ -228,6 +230,8 @@ public static partial class Program
         Verificar(limitado, "Limite de tentativas protege o login");
         await VerificarComercial(raiz, Path.Combine(pasta, "comercial"));
         await VerificarPerfis(raiz, Path.Combine(pasta, "perfis"));
+        await VerificarInterface(raiz, Path.Combine(pasta, "interface"));
+        await VerificarApresentacao(raiz,Path.Combine(pasta,"apresentacao"));
         Console.WriteLine($"{quantidade} verificações integradas concluídas, sem sockets ou credenciais fixas.");
     }
 }

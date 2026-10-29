@@ -16,7 +16,7 @@ public sealed class FinanceiroController(IHttpClientFactory factory) : ApiMvcCon
     async Task<FormReceber?> Formulario(Guid id, DateOnly data, RecebimentoEntrada? entrada = null)
     {
         var titulo = (await Api.GetFromJsonAsync<List<TituloDto>>($"api/titulos?data={data:yyyy-MM-dd}"))!.SingleOrDefault(x => x.Id == id);
-        return titulo is null ? null : new() { Titulo = titulo, Entrada = entrada ?? new() { Data = data, Versao = titulo.Versao, FormaPagamentoId = titulo.FormaPagamentoId, Valor = titulo.ValorQuitacao }, Formas = await Api.GetFromJsonAsync<List<FormaPagamentoDto>>("api/formas-pagamento") ?? [] };
+        return titulo is null ? null : new() { Titulo = titulo, Entrada = entrada ?? new() { Data = data, Versao = titulo.Versao, FormaPagamentoId = titulo.FormaPagamentoId, Valor = titulo.ValorQuitacao }, Formas = (await Api.GetFromJsonAsync<List<FormaPagamentoDto>>("api/formas-pagamento") ?? []).Where(f=>CatalogosCadastro.Forma(f.Nome) is not null).ToList() };
     }
     public async Task<IActionResult> Receber(Guid id, DateOnly? data)
     {

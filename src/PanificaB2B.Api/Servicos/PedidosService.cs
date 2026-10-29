@@ -58,7 +58,8 @@ public sealed class PedidosService(DistribuidoraDbContext db, EstoqueService est
         Exigir(condicao is { Ativo: true }, "Condição de pagamento inexistente ou inativa.");
         if (condicao!.Versao != r.CondicaoVersao) throw new ConflitoException("A condição de pagamento mudou. Atualize e confira o pedido.");
         var formasIds = condicao.Parcelas.Select(x => x.FormaPagamentoId).Distinct().ToList();
-        Exigir(await db.FormasPagamento.CountAsync(x => formasIds.Contains(x.Id) && x.Ativo) == formasIds.Count, "A condição utiliza forma de pagamento inativa.");
+        var formasAtivas=await db.FormasPagamento.Where(x=>formasIds.Contains(x.Id) && x.Ativo).ToListAsync();
+        Exigir(formasAtivas.Count==formasIds.Count && formasAtivas.All(f=>CatalogosCadastro.Forma(f.Nome) is not null), "A condição utiliza forma de pagamento inativa ou inválida.");
         var produtos = await db.Produtos.ToDictionaryAsync(x => x.Id);
         var grupos = await db.GruposProduto.ToDictionaryAsync(x => x.Id);
         var pedido = new Pedido { Id = r.Id, ClienteId = cliente.Id, ClienteNome = cliente.Nome, VendedorId = vendedor!.Id, VendedorNome = vendedor.Nome,

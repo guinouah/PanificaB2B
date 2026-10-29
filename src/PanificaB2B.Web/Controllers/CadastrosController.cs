@@ -14,7 +14,11 @@ public sealed class CadastrosController(IHttpClientFactory factory) : ApiMvcCont
         if (ModelState.IsValid && await Gravar(rota, r, id)) Sucesso("Cadastro salvo."); else GuardarErro();
         return RedirectToAction(nameof(Index));
     }
-    [HttpPost, ValidateAntiForgeryToken] public Task<IActionResult> Estado(Guid? id, EstadoEntrada r) => Salvar("api/estados", r, id);
+    [HttpPost, ValidateAntiForgeryToken] public Task<IActionResult> Estado(Guid? id, EstadoEntrada r)
+    {
+        if(LocalidadesBrasil.Estado(r.Sigla) is { } oficial){r.Nome=oficial.Nome;ModelState.Remove(nameof(r.Nome));}
+        return Salvar("api/estados",r,id);
+    }
     [HttpPost, ValidateAntiForgeryToken] public Task<IActionResult> Cidade(Guid? id, CidadeEntrada r) => Salvar("api/cidades", r, id);
     [HttpPost, ValidateAntiForgeryToken] public Task<IActionResult> Vendedor(Guid? id, VendedorEntrada r) => Salvar("api/vendedores", r, id);
     [HttpPost, ValidateAntiForgeryToken] public Task<IActionResult> Territorio(Guid? id, TerritorioEntrada r) => Salvar("api/territorios", r, id);

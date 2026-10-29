@@ -1,10 +1,3 @@
 @model PanificaB2B.Contratos.CredenciaisEntrada
 @{ ViewData["Title"] = "Primeiro acesso"; }
-<h1>Primeiro acesso</h1>
-<p>Crie o administrador inicial da distribuidora. Use uma senha com pelo menos 12 caracteres.</p>
-<form asp-action="Configurar" method="post" class="col-md-5">
-    <div asp-validation-summary="All" class="text-danger"></div>
-    <div class="mb-3"><label asp-for="Login"></label><input asp-for="Login" class="form-control" autocomplete="username" /></div>
-    <div class="mb-3"><label asp-for="Senha" minlength="12"></label><input asp-for="Senha" minlength="12" class="form-control" autocomplete="new-password" /></div>
-    <button class="btn btn-primary" type="submit">Criar administrador</button>
-</form>
+<div class="auth-shell"><section class="auth-story"><a class="brand" asp-controller="Home" asp-action="Index"><span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-trigo"/></svg></span><span>panifica<span class="brand-subtitle">DISTRIBUIDORA B2B</span></span></a><div><svg class="icon auth-art" aria-hidden="true"><use href="#i-trigo"/></svg><h2>Vamos organizar a sua distribuidora.</h2><p>Uma visão completa dos seus clientes, pedidos, produtos e recebimentos.</p></div><small>Seu primeiro passo começa aqui.</small></section><section class="auth-form"><span class="eyebrow">CONFIGURAÇÃO INICIAL</span><h1>Primeiro acesso</h1><p>Crie o administrador inicial. Depois, você poderá cadastrar os demais acessos da equipe.</p><form asp-action="Configurar" method="post"><div asp-validation-summary="All" class="text-danger" role="alert"></div><label asp-for="Login"></label><input asp-for="Login" class="form-control" autocomplete="username" placeholder="Ex.: admin" required /><label asp-for="Senha"></label><input asp-for="Senha" minlength="12" class="form-control" autocomplete="new-password" placeholder="Pelo menos 12 caracteres" required /><button class="btn btn-primary" type="submit">Criar administrador →</button></form><p class="auth-note">Use letras, números, ponto, hífen ou sublinhado no login.</p></section></div>

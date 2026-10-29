@@ -43,6 +43,19 @@ public sealed class TrabalhoLocal(string caminhoBanco)
             throw new InvalidOperationException("Esta operação já foi enviada ou aguarda confirmação. Tente o envio antes de alterá-la.");
         await banco.InsertOrReplaceAsync(new OperacaoLocal { Chave = chave, VendedorId = vendedorId.ToString(), RegistroId = id.ToString(), Tipo = tipo, Situacao = situacao, ConteudoJson = JsonSerializer.Serialize(conteudo, json), AtualizadoEm = DateTimeOffset.UtcNow.ToString("O") });
     }
+    public async Task Descartar(Guid vendedorId,string chave)
+    {
+        await banco.CreateTableAsync<OperacaoLocal>();
+        var item=await banco.FindAsync<OperacaoLocal>(chave)??throw new InvalidOperationException("Pendência não encontrada.");
+        if(item.VendedorId!=vendedorId.ToString())throw new InvalidOperationException("Pendência de outro vendedor.");
+        if(item.Situacao is not ("Rascunho" or "Rejeitado" or "Pronto"))throw new InvalidOperationException("Esta pendência pode já ter chegado à central. Sincronize antes de tentar cancelar.");
+        if(item.Tipo=="Cliente")
+        {
+            var dependentes=(await Listar(vendedorId)).Any(p=>p.Tipo=="Pedido" && p.Situacao!="Descartado" && Ler<PedidoEntrada>(p).ClienteId.ToString()==item.RegistroId);
+            if(dependentes)throw new InvalidOperationException("Descarte primeiro os pedidos vinculados a este cliente.");
+        }
+        await Atualizar(item,"Descartado","Descartado pelo vendedor antes da confirmação de envio.");
+    }
     public async Task Atualizar(OperacaoLocal item, string situacao, string mensagem)
     {
         item.Situacao = situacao; item.Mensagem = mensagem; item.AtualizadoEm = DateTimeOffset.UtcNow.ToString("O");
@@ -51,7 +64,7 @@ public sealed class TrabalhoLocal(string caminhoBanco)
     public static List<ClienteDto> Clientes(PreparacaoDto dados, IEnumerable<OperacaoLocal> locais)
     {
         var clientes = dados.Clientes.ToDictionary(x => x.Id);
-        foreach (var item in locais.Where(x => x.Tipo == "Cliente"))
+        foreach (var item in locais.Where(x => x.Tipo == "Cliente" && x.Situacao != "Descartado"))
         {
             if (item.Situacao == "Confirmado" && DateTimeOffset.TryParse(item.AtualizadoEm, out var confirmadoEm) && confirmadoEm < dados.AtualizadoEm) continue;
             var c = Ler<ClienteEntrada>(item);

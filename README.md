@@ -65,6 +65,24 @@ dotnet build src/PanificaB2B.App -p:BuildWindowsOnly=true
 
 Os arquivos `.cmd` usam binários já compilados. `bin`, `obj`, bancos locais e chaves não fazem parte do código publicado; os comandos acima recompilam a aplicação após baixar o repositório. A primeira restauração dos pacotes pode exigir internet. As credenciais de teste solicitadas pela disciplina devem ser informadas exclusivamente no portal do aluno.
 
+### Interface administrativa
+
+O site inclui navegação lateral conforme o perfil, painel de indicadores, busca nas listas de clientes e pedidos e ficha do cliente com dívida e últimas compras. Em **Pedidos e cortes**, abra um produto para conferir a demanda por cliente e o saldo válido. Em **Analisar**, informe as quantidades a atender: a tela mostra o corte e uma prévia do valor; o cálculo definitivo, a baixa e as parcelas são confirmados pela API em transação.
+
+## Demonstração para apresentação
+
+Após criar o primeiro administrador, abra **Visão geral → Preparar dados para apresentação** e defina uma senha de pelo menos 12 caracteres. O botão adiciona registros fictícios identificados por **[DEMO]**: produtos, lotes, condição em 7/14 dias, roteiro, três clientes e pedidos de **5/8/9 unidades** de fermento com **15 disponíveis**. O atendimento de **2/6/7** é definido manualmente em **Pedidos e cortes**.
+
+Os três clientes possuem históricos distintos: pagamento no prazo, pagamento com quatro dias de atraso e parcela vencida em aberto. Na análise do pedido, o quadro **Pontualidade do cliente** mostra esses dados e a dívida. O sistema apoia a decisão do gestor e não aplica prioridade automática ou bloqueio por crédito.
+
+A preparação cria os acessos **vendedor.demo**, **gestor.demo**, **financeiro.demo** e **estoque.demo** com a senha informada no formulário. Não há senha padrão gravada no código. Repetir a preparação preserva os cadastros e o estoque já utilizado. Não é um comando para reiniciar a demonstração.
+
+### Cadastros com seleção
+
+Formas de pagamento e unidades de venda usam listas de opções válidas, com validação também na API. Estados e municípios usam uma cópia local da [API de localidades do IBGE](https://servicodados.ibge.gov.br/api/docs/localidades), obtida em 28/10/2026: 27 UFs e 5.571 municípios. Selecionar outra UF atualiza a lista de municípios; o catálogo funciona sem internet. Os clientes usam somente as cidades cadastradas e vinculadas ao território. Cadastros antigos inválidos de forma de pagamento podem ser desativados sem apagar seu histórico.
+
+No aplicativo, **pedidos recebidos ainda não faturados** podem ser cancelados com motivo e conexão à central. Rascunhos, rejeitados e pedidos locais prontos podem ser descartados da fila. Uma operação com envio incerto precisa ser sincronizada antes de poder ser tratada como nunca enviada.
+
 ## O que está implementado
 
 - Login dos quatro perfis de equipe no site e de vendedor no aplicativo; hash de senha, sessão revogável e validação da carteira no servidor.

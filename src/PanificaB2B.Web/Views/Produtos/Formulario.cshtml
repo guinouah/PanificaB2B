@@ -6,7 +6,7 @@
 <label asp-for="Entrada.Codigo">Código</label><input asp-for="Entrada.Codigo" class="form-control" required maxlength="30" />
 <label asp-for="Entrada.Nome">Nome</label><input asp-for="Entrada.Nome" class="form-control" required maxlength="150" />
 <label asp-for="Entrada.GrupoId">Grupo</label><select asp-for="Entrada.GrupoId" class="form-select" required><option value="">Selecione</option>@foreach (var g in Model.Grupos) { <option value="@g.Id">@g.Nome @(g.Ativo ? "" : "(inativo)")</option> }</select>
-<label asp-for="Entrada.Unidade">Unidade de venda (UN, KG, saco, balde...)</label><input asp-for="Entrada.Unidade" class="form-control" required maxlength="15" />
+<label asp-for="Entrada.Unidade">Unidade de venda</label><select asp-for="Entrada.Unidade" class="form-select" required>@foreach(var unidade in PanificaB2B.Contratos.CatalogosCadastro.UnidadesVenda){<option value="@unidade">@unidade</option>}</select>
 <label asp-for="Entrada.Preco">Preço normal (R$)</label><input asp-for="Entrada.Preco" type="number" min="0.01" step="0.01" class="form-control" required />
 <fieldset><legend>Promoção e novidade</legend>
 <label asp-for="Entrada.PrecoPromocional">Preço promocional (opcional)</label><input asp-for="Entrada.PrecoPromocional" type="number" min="0.01" step="0.01" class="form-control" />

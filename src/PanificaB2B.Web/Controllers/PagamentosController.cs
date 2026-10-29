@@ -18,7 +18,7 @@ public sealed class PagamentosController(IHttpClientFactory factory) : ApiMvcCon
     async Task<IActionResult> Formulario(CondicaoPagamentoEntrada entrada, Guid? id = null)
     {
         ViewData["Id"] = id; ViewData["Acao"] = id is null ? "NovaCondicao" : "EditarCondicao";
-        return View("Condicao", new FormCondicao { Entrada = entrada, Formas = await Api.GetFromJsonAsync<List<FormaPagamentoDto>>("api/formas-pagamento") ?? [] });
+        return View("Condicao", new FormCondicao { Entrada = entrada, Formas = (await Api.GetFromJsonAsync<List<FormaPagamentoDto>>("api/formas-pagamento") ?? []).Where(f=>CatalogosCadastro.Forma(f.Nome) is not null).ToList() });
     }
     public Task<IActionResult> NovaCondicao() => Formulario(new() { Parcelas = [new() { Dias = 7, Percentual = 50 }, new() { Dias = 14, Percentual = 50 }] });
     public async Task<IActionResult> EditarCondicao(Guid id)

@@ -76,7 +76,34 @@ public sealed class OperacaoPage : ContentPage
         if (clientes.Count == 0) lista.Children.Add(InterfaceVenda.Texto("Nenhum cliente neste roteiro. Clientes novos aparecem em Toda a carteira."));
         lista.Children.Add(InterfaceVenda.Texto("Pedidos confirmados pela distribuidora", true));
         foreach (var p in dados.Pedidos.OrderByDescending(x => x.RecebidoEm))
-            lista.Children.Add(InterfaceVenda.Texto($"{p.Cliente} · {p.Situacao}\n" + string.Join("\n", p.Itens.Select(i => $"{i.Produto}: pediu {i.QuantidadePedida}, atendido {i.QuantidadeAtendida}"))));
+        {
+            lista.Children.Add(InterfaceVenda.Texto($"{p.Cliente} · {p.Situacao}\n" + string.Join("\n",p.Itens.Select(i=>$"{i.Produto}: pediu {i.QuantidadePedida}, atendido {i.QuantidadeAtendida}"))));
+            if(p.Situacao==SituacaoPedido.Recebido)lista.Children.Add(InterfaceVenda.Botao("Cancelar pedido recebido de "+p.Cliente,()=>CancelarPedido(p)));
+        }
+    }
+    async Task CancelarPedido(PedidoDto pedido)
+    {
+        if(sessao.ExpiraEm<=DateTimeOffset.UtcNow)throw new InvalidOperationException("Entre novamente e atualize os pedidos antes de cancelar.");
+        var motivo=await DisplayPromptAsync("Cancelar pedido","Informe o motivo. O cancelamento depende de conexão e de o pedido ainda não ter sido faturado.","Continuar","Voltar",maxLength:200);
+        if(motivo is null)return;
+        if(string.IsNullOrWhiteSpace(motivo))throw new InvalidOperationException("Informe o motivo do cancelamento.");
+        using var api=new HttpClient{Timeout=TimeSpan.FromSeconds(20)};
+        using var request=new HttpRequestMessage(HttpMethod.Post,new Uri(new Uri(sessao.ApiUrl),$"api/pedidos/{pedido.Id}/cancelar"));
+        request.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",sessao.Token);
+        request.Content=JsonContent.Create(new CancelamentoEntrada{Versao=pedido.Versao,Motivo=motivo.Trim()});
+        using var response=await api.SendAsync(request);
+        if(!response.IsSuccessStatusCode)
+        {
+            var texto=await response.Content.ReadAsStringAsync();
+            string? mensagem=null;
+            try{using var json=System.Text.Json.JsonDocument.Parse(texto);if(json.RootElement.TryGetProperty("mensagem",out var m))mensagem=m.GetString();}catch(System.Text.Json.JsonException){}
+            throw new InvalidOperationException(mensagem??"Não foi possível cancelar. Atualize os pedidos e confira se o faturamento já ocorreu.");
+        }
+        var atualizado=(await response.Content.ReadFromJsonAsync<PedidoDto>())!;
+        var indice=dados.Pedidos.FindIndex(p=>p.Id==atualizado.Id);
+        if(indice>=0)dados.Pedidos[indice]=atualizado;
+        await cache.Salvar(dados);await Atualizar();
+        await DisplayAlertAsync("Pedido cancelado","A distribuidora confirmou o cancelamento.","OK");
     }
     Task AbrirCliente(ClienteDto cliente)
     {
@@ -123,13 +150,23 @@ public sealed class PendenciasPage : ContentPage
     async Task Atualizar()
     {
         lista.Children.Clear();
-        foreach (var item in await local.Listar(dados.VendedorId))
+        foreach (var item in (await local.Listar(dados.VendedorId)).Where(x=>x.Situacao!="Descartado"))
         {
             var nome = item.Tipo == "Cliente" ? TrabalhoLocal.Ler<ClienteEntrada>(item).Nome : dados.Clientes.FirstOrDefault(c => c.Id == TrabalhoLocal.Ler<PedidoEntrada>(item).ClienteId)?.Nome ?? "Cliente local";
             var resumo = item.Tipo == "Pedido" ? "\n" + string.Join("\n", TrabalhoLocal.Ler<PedidoEntrada>(item).Itens.Select(i => $"{dados.Produtos.FirstOrDefault(p => p.Id == i.ProdutoId)?.Nome ?? i.ProdutoId.ToString()}: {i.Quantidade} × {InterfaceVenda.Dinheiro(i.PrecoUnitario)}")) : "";
             lista.Children.Add(InterfaceVenda.Texto($"{item.Tipo}: {nome} · {item.Situacao}{resumo}\n{item.Mensagem}"));
-            if (item.Situacao is "Rascunho" or "Rejeitado" or "Pronto") lista.Children.Add(InterfaceVenda.Botao("Revisar " + item.Tipo.ToLowerInvariant(), () => Revisar(item)));
+            if(item.Situacao is "Rascunho" or "Rejeitado" or "Pronto")
+            {
+                lista.Children.Add(InterfaceVenda.Botao("Revisar "+item.Tipo.ToLowerInvariant(),()=>Revisar(item)));
+                lista.Children.Add(InterfaceVenda.Botao("Descartar "+item.Tipo.ToLowerInvariant(),()=>Descartar(item)));
+            }
         }
+    }
+    async Task Descartar(OperacaoLocal item)
+    {
+        if(enviando)return;
+        if(!await DisplayAlertAsync("Descartar pendência","Retirar esta pendência local da fila? Pedidos já confirmados na central devem ser cancelados na lista de pedidos recebidos.","Descartar","Voltar"))return;
+        await local.Descartar(dados.VendedorId,item.Chave);await Atualizar();
     }
     async Task Revisar(OperacaoLocal item)
     {

@@ -1,5 +1,16 @@
 # Roteiro de demonstração — Panifica B2B
 
+## Apresentação rápida com dados prontos
+
+1. Entre com um administrador e, em **Visão geral → Preparar dados para apresentação**, defina a senha dos acessos de demonstração. Se a demonstração já foi preparada neste computador, os dados e atendimentos serão mantidos.
+2. Em **Pedidos e cortes**, abra o fermento identificado por **[DEMO]**: solicitado **22**, disponível **15**, falta **7**.
+3. Abra cada cliente e explique **Pontualidade do cliente**: Aurora pagou no prazo; Doce Trigo pagou com atraso; Pão da Vila tem parcela vencida.
+4. Atenda **2**, **6** e **7**, respectivamente, informando o motivo do corte. Cada confirmação reduz o estoque; o total entregue é **15 unidades** e **R$ 150**. Os pedidos históricos da demonstração são separados destes três pedidos pendentes.
+5. Mostre as vendas e as seis parcelas geradas pela condição em 7 e 14 dias.
+6. Em **Pagamentos**, confira que a nova forma exige selecionar uma opção. Em **Cadastros**, selecione UF e município. A API também recusa opções inválidas.
+7. No aplicativo, entre como **vendedor.demo** com a senha definida na preparação, atualize a carteira e confira o roteiro. Para testar cancelamento online, use um pedido recebido que ainda não tenha sido faturado. Para testar descarte offline, crie um rascunho e use **Descartar pedido**.
+8. A execução em aparelho/emulador e a verificação visual continuam sendo etapas manuais; as verificações automatizadas não substituem esses testes.
+
 ## 1. Abrir e preparar
 
 1. Encerre as janelas antigas da API e do site com Ctrl+C.

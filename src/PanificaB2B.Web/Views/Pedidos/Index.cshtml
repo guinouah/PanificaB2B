@@ -1,11 +1,23 @@
 @model PanificaB2B.Web.Models.PedidosModel
 @using PanificaB2B.Contratos
-@{ ViewData["Title"] = "Pedidos"; var hoje = DateOnly.FromDateTime(DateTime.Today); var demanda = Model.Pedidos.Where(x => x.Situacao == SituacaoPedido.Recebido).SelectMany(x => x.Itens).GroupBy(x => x.ProdutoId).ToList(); }
-<div class="page-heading"><h1>Pedidos recebidos</h1><a asp-action="Novo" class="btn btn-primary">Novo pedido no site</a></div>
-<p>Os pedidos do aplicativo aparecem aqui após o vendedor confirmar o envio. Analise a demanda antes de distribuir o estoque.</p>
-@if (demanda.Count > 0) { <h2>Demanda pendente de todos os vendedores</h2><table class="table"><thead><tr><th>Produto</th><th>Solicitado</th><th>Estoque válido</th><th>Falta</th></tr></thead><tbody>
-@foreach (var grupo in demanda) { var solicitado = grupo.Sum(x => x.QuantidadePedida); var disponivel = Model.Lotes.Where(x => x.ProdutoId == grupo.Key && x.Validade >= hoje).Sum(x => x.Saldo); <tr class="@(solicitado > disponivel ? "promocao" : "")"><td>@grupo.First().Produto</td><td>@solicitado</td><td>@disponivel</td><td>@Math.Max(0, solicitado - disponivel)</td></tr> }
-</tbody></table> }
-<table class="table"><thead><tr><th>Recebido</th><th>Cliente</th><th>Vendedor</th><th>Total solicitado</th><th>Situação</th><th></th></tr></thead><tbody>
-@foreach (var p in Model.Pedidos) { <tr><td>@p.RecebidoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td><td>@p.Cliente</td><td>@p.Vendedor</td><td>@p.TotalPedido.ToString("C")</td><td>@p.Situacao</td><td><a asp-action="Detalhe" asp-route-id="@p.Id">Analisar</a></td></tr> }
-</tbody></table>
+@{
+    ViewData["Title"] = "Pedidos e cortes";
+    var hoje = DateOnly.FromDateTime(DateTime.Today);
+    var pendentes = Model.Pedidos.Where(x=>x.Situacao==SituacaoPedido.Recebido).ToList();
+    var demanda = pendentes.SelectMany(p=>p.Itens.Select(i=>new { Pedido=p, Item=i })).GroupBy(x=>x.Item.ProdutoId).ToList();
+    string Situacao(SituacaoPedido s) => s switch { SituacaoPedido.Recebido=>"Aguardando análise", SituacaoPedido.Faturado=>"Faturado", SituacaoPedido.FaturadoParcialmente=>"Faturado com corte", SituacaoPedido.NaoAtendido=>"Não atendido", _=>"Cancelado" };
+}
+<div class="page-heading"><div><span class="eyebrow">CENTRAL DE ATENDIMENTO</span><h1>Pedidos e cortes</h1><p>Distribua o estoque disponível entre os pedidos de cada cliente.</p></div><a asp-action="Novo" class="btn btn-primary">+ Novo pedido no site</a></div>
+<div class="dashboard"><article class="metric-featured"><span>Aguardando análise</span><strong>@pendentes.Count</strong><small>Pedidos recebidos de todos os vendedores</small></article><article><span>Clientes aguardando</span><strong>@pendentes.Select(x=>x.ClienteId).Distinct().Count()</strong><small>Carteiras com pedidos pendentes</small></article><article><span>Produtos solicitados</span><strong>@demanda.Count</strong><small>Produtos distintos na demanda pendente</small></article></div>
+<div class="section-heading"><h2>Demanda por produto</h2><span class="eyebrow mb-0">ESTOQUE VÁLIDO HOJE</span></div>
+<p>Abra um produto para comparar as quantidades solicitadas por cliente. O corte é confirmado na análise de cada pedido.</p>
+@foreach (var grupo in demanda) {
+    var solicitado = grupo.Sum(x=>x.Item.QuantidadePedida);
+    var disponivel = Model.Lotes.Where(x=>x.ProdutoId==grupo.Key && x.Validade>=hoje).Sum(x=>x.Saldo);
+    <details class="demand-card"><summary><span class="demand-title"><strong>@grupo.First().Item.Produto</strong><small>@grupo.Count() pedido(s) · unidade: @grupo.First().Item.Unidade</small></span><span class="demand-numbers"><span>Solicitado<b>@solicitado.ToString("0.###")</b></span><span>Disponível<b>@disponivel.ToString("0.###")</b></span><span class="@(solicitado>disponivel ? "shortage" : "")">Falta<b>@Math.Max(0,solicitado-disponivel).ToString("0.###")</b></span></span></summary>
+    <div class="table-responsive"><table class="table"><thead><tr><th>Cliente</th><th>Vendedor</th><th class="numeric">Quantidade pedida</th><th></th></tr></thead><tbody>@foreach (var linha in grupo) { <tr><td><a asp-controller="Clientes" asp-action="Detalhe" asp-route-id="@linha.Pedido.ClienteId">@linha.Pedido.Cliente</a></td><td>@linha.Pedido.Vendedor</td><td class="numeric">@linha.Item.QuantidadePedida.ToString("0.###")</td><td class="numeric"><a asp-action="Detalhe" asp-route-id="@linha.Pedido.Id" class="btn btn-outline-primary btn-sm">Definir atendimento →</a></td></tr> }</tbody></table></div></details>
+}
+@if (demanda.Count == 0) { <div class="panel empty-state"><svg class="icon" aria-hidden="true"><use href="#i-pedidos"/></svg><strong>Nenhum pedido aguardando análise</strong><p>Os pedidos enviados pelo vendedor aparecem aqui, junto dos criados no site.</p></div> }
+<section class="panel"><div class="panel-head"><div><h2>Todos os pedidos</h2><p>Solicitações recebidas e atendimentos já concluídos.</p></div><input type="search" class="search-box" data-table-search="pedidos" aria-label="Buscar pedidos" placeholder="Buscar cliente, vendedor ou situação…" /></div><div class="table-responsive"><table class="table" id="pedidos"><thead><tr><th>Recebido</th><th>Cliente</th><th>Vendedor</th><th class="numeric">Total solicitado</th><th>Situação</th><th></th></tr></thead><tbody>
+@foreach (var p in Model.Pedidos.OrderBy(x=>x.Situacao!=SituacaoPedido.Recebido).ThenByDescending(x=>x.RecebidoEm)) { <tr data-search-row><td>@p.RecebidoEm.ToLocalTime().ToString("dd/MM/yyyy")<small>@p.RecebidoEm.ToLocalTime().ToString("HH:mm")</small></td><td><strong>@p.Cliente</strong></td><td>@p.Vendedor</td><td class="numeric">@p.TotalPedido.ToString("C")</td><td><span class="status @(p.Situacao==SituacaoPedido.Recebido ? "status-pending" : p.Situacao==SituacaoPedido.Faturado ? "status-ok" : p.Situacao==SituacaoPedido.FaturadoParcialmente ? "status-info" : "")">@Situacao(p.Situacao)</span></td><td class="numeric"><a asp-action="Detalhe" asp-route-id="@p.Id" class="btn btn-outline-secondary btn-sm">@(p.Situacao==SituacaoPedido.Recebido ? "Analisar" : "Ver pedido")</a></td></tr> }
+</tbody></table></div><p class="search-empty" data-search-empty="pedidos" role="status">Nenhum pedido encontrado para essa busca.</p></section>

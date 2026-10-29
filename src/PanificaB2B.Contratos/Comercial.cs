@@ -126,3 +126,6 @@ public record RecebimentoDto(Guid Id, Guid TituloId, DateOnly Data, decimal Valo
 public record UltimaCompraDto(Guid ClienteId, Guid ProdutoId, string Produto, DateOnly Data, decimal Quantidade, decimal PrecoUnitario);
 public record DividaClienteDto(Guid ClienteId, DateOnly DataConsulta, decimal PrincipalAberto, decimal PrincipalVencido, decimal ValorQuitacao, List<TituloDto> Titulos);
 public record PainelDto(int ClientesAtivos, int ProdutosAtivos, int PedidosPendentes, decimal Vendas, decimal ContasAReceber, int LotesVencidos);
+
+public record PagamentoClienteDto(string Identificacao,DateOnly Vencimento,DateOnly? Pagamento,decimal Valor,string Situacao,int DiasAtraso);
+public record HistoricoPagamentosDto(Guid ClienteId,DateOnly DataConsulta,int PagosNoPrazo,int PagosComAtraso,int VencidosEmAberto,int PagosSemData,int MaiorAtrasoDias,decimal PrincipalEmAberto,decimal PrincipalVencido,List<PagamentoClienteDto> Parcelas);

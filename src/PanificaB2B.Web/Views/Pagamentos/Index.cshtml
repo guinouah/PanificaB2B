@@ -1,12 +1,18 @@
 @model PanificaB2B.Web.Models.PagamentosModel
-@{ ViewData["Title"] = "Pagamentos"; }
-<h1>Condições e formas de pagamento</h1>
-<h2>Formas</h2><p>O meio de pagamento de cada parcela: Pix, boleto, dinheiro...</p>
-<form asp-action="Forma" method="post" class="inline-form"><input name="Nome" placeholder="Nova forma" required maxlength="100" class="form-control" /><input name="Ativo" type="hidden" value="true" /><button class="btn btn-primary">Cadastrar forma</button></form>
-@foreach (var f in Model.Formas) {
-<form asp-action="Forma" method="post" class="inline-form"><input name="id" type="hidden" value="@f.Id" /><input name="Nome" value="@f.Nome" required maxlength="100" class="form-control" /><label><input name="Ativo" type="checkbox" value="true" checked="@f.Ativo" /> Ativa</label><input name="Ativo" type="hidden" value="false" /><button class="btn btn-outline-primary">Salvar</button></form>
+@using PanificaB2B.Contratos
+@{ ViewData["Title"]="Pagamentos"; var disponiveis=CatalogosCadastro.FormasPagamento.Where(n=>!Model.Formas.Any(f=>CatalogosCadastro.Forma(f.Nome)==n)).ToList(); }
+<div class="page-heading"><div><span class="eyebrow">REGRAS FINANCEIRAS</span><h1>Condições e formas de pagamento</h1><p>Escolha meios válidos e configure como as vendas serão parceladas.</p></div></div>
+<section class="panel"><div class="panel-head"><div><h2>Formas de pagamento</h2><p>Selecione Pix, boleto, dinheiro, cartão, transferência ou cheque.</p></div></div><div class="panel-body">
+@if(disponiveis.Count>0){<form asp-action="Forma" method="post" class="inline-form"><label for="nova-forma">Nova forma<select name="Nome" id="nova-forma" required class="form-select"><option value="">Selecione uma forma</option>@foreach(var nome in disponiveis){<option value="@nome">@(nome=="Boleto"?"Boleto bancário":nome)</option>}</select></label><input name="Ativo" type="hidden" value="true"/><button class="btn btn-primary">Cadastrar forma</button></form>}
+@foreach(var f in Model.Formas){
+    var valida=CatalogosCadastro.Forma(f.Nome) is not null;
+    <form asp-action="Forma" method="post" class="inline-form"><input name="id" type="hidden" value="@f.Id"/>
+    @if(valida){<label>Forma<select name="Nome" required class="form-select">@foreach(var nome in CatalogosCadastro.FormasPagamento){<option value="@nome" selected="@(CatalogosCadastro.Forma(f.Nome)==nome)">@(nome=="Boleto"?"Boleto bancário":nome)</option>}</select></label><label><input name="Ativo" type="checkbox" value="true" checked="@f.Ativo"/> Ativa</label><input name="Ativo" type="hidden" value="false"/><button class="btn btn-outline-primary">Salvar</button>}
+    else{<input type="hidden" name="Nome" value="@f.Nome"/><input type="hidden" name="Ativo" value="false"/><span class="status status-danger">Cadastro antigo inválido: @f.Nome</span>@if(f.Ativo){<button class="btn btn-outline-danger">Desativar</button>}else{<span>Inativo · histórico preservado</span>}}
+    </form>
 }
-<div class="page-heading"><h2>Condições</h2><a asp-action="NovaCondicao" class="btn btn-primary">Nova condição</a></div>
-<table class="table"><thead><tr><th>Condição</th><th>Parcelas</th><th>Encargos</th><th>Situação</th><th></th></tr></thead><tbody>
-@foreach (var c in Model.Condicoes) { <tr><td>@c.Codigo · @c.Nome</td><td>@foreach (var p in c.Parcelas) { <div>@p.Numero: @p.Percentual% em @p.Dias dias · @p.FormaPagamento</div> }</td><td>Multa @c.MultaPercentual% · juros @c.JurosDiariosPercentual%/dia</td><td>@(c.Ativo ? "Ativa" : "Inativa")</td><td><a asp-action="EditarCondicao" asp-route-id="@c.Id">Editar</a></td></tr> }
-</tbody></table>
+</div></section>
+<div class="section-heading"><h2>Condições de pagamento</h2><a asp-action="NovaCondicao" class="btn btn-primary">+ Nova condição</a></div>
+<div class="panel table-responsive"><table class="table"><thead><tr><th>Condição</th><th>Parcelas e forma</th><th>Encargos</th><th>Situação</th><th></th></tr></thead><tbody>
+@foreach(var c in Model.Condicoes){<tr><td><strong>@c.Codigo · @c.Nome</strong></td><td>@foreach(var p in c.Parcelas){<div>@p.Numero: @p.Percentual% em @p.Dias dias · @p.FormaPagamento</div>}</td><td>Multa @c.MultaPercentual%<small>Juros @c.JurosDiariosPercentual%/dia</small></td><td><span class="status @(c.Ativo?"status-ok":"")">@(c.Ativo?"Ativa":"Inativa")</span></td><td><a asp-action="EditarCondicao" asp-route-id="@c.Id">Editar</a></td></tr>}
+</tbody></table></div>

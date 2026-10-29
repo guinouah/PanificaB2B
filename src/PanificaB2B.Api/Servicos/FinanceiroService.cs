@@ -32,7 +32,7 @@ public sealed class FinanceiroService(DistribuidoraDbContext db)
     {
         var parcelas = condicao.Parcelas.OrderBy(x => x.Numero).ToList();
         var formas = await db.FormasPagamento.ToDictionaryAsync(x => x.Id);
-        Exigir(parcelas.Count > 0 && parcelas.Sum(x => x.PercentualPontos) == 10000 && parcelas.All(x => formas[x.FormaPagamentoId].Ativo), "A condição possui formas de pagamento inativas ou parcelas inválidas.");
+        Exigir(parcelas.Count > 0 && parcelas.Sum(x => x.PercentualPontos) == 10000 && parcelas.All(x => formas[x.FormaPagamentoId].Ativo && CatalogosCadastro.Forma(formas[x.FormaPagamentoId].Nome) is not null), "A condição possui formas de pagamento inativas ou parcelas inválidas.");
         long distribuido = 0;
         foreach (var p in parcelas)
         {
@@ -61,12 +61,30 @@ public sealed class FinanceiroService(DistribuidoraDbContext db)
         var venda = await db.Vendas.FindAsync(titulo.VendaId);
         Exigir(r.Data >= venda!.Data && !venda.Cancelada, "O recebimento não pode anteceder a venda nem liquidar uma venda cancelada.");
         var forma = await db.FormasPagamento.FindAsync(r.FormaPagamentoId);
-        Exigir(forma is { Ativo: true }, "Selecione uma forma de pagamento ativa.");
+        Exigir(forma is { Ativo: true } && CatalogosCadastro.Forma(forma.Nome) is not null, "Selecione uma forma de pagamento ativa.");
         var calculo = Dto(titulo, r.Data);
         if (valor != Centavos(calculo.ValorQuitacao)) throw new ConflitoException("O valor de quitação mudou. Recalcule para a data selecionada antes de confirmar.");
         var recebimento = new Recebimento { Id = r.Id, TituloId = tituloId, Data = r.Data, ValorCentavos = valor, PrincipalCentavos = titulo.ValorCentavos,
             MultaCentavos = Centavos(calculo.Multa), JurosCentavos = Centavos(calculo.Juros), DescontoCentavos = Centavos(calculo.Desconto), FormaPagamentoId = r.FormaPagamentoId, FormaNome = forma!.Nome, UsuarioId = usuarioId };
         titulo.Pago = true; titulo.Versao++; db.Recebimentos.Add(recebimento);
         await db.SaveChangesAsync(); await tx.CommitAsync(); return Dto(recebimento);
+    }
+
+    public async Task<HistoricoPagamentosDto> Historico(Guid clienteId)
+    {
+        var hoje=Hoje;
+        var titulos=await db.Titulos.AsNoTracking().Where(t=>t.ClienteId==clienteId && !t.Cancelado).OrderByDescending(t=>t.Vencimento).ToListAsync();
+        var ids=titulos.Select(t=>t.Id).ToList();
+        var recebimentos=await db.Recebimentos.AsNoTracking().Where(r=>ids.Contains(r.TituloId)).ToDictionaryAsync(r=>r.TituloId);
+        var parcelas=titulos.Select(t=>
+        {
+            DateOnly? pagoEm=recebimentos.TryGetValue(t.Id,out var recebimento)?recebimento.Data:null;
+            var atraso=t.Pago?(pagoEm is {} dia?Math.Max(0,dia.DayNumber-t.Vencimento.DayNumber):0):Math.Max(0,hoje.DayNumber-t.Vencimento.DayNumber);
+            var situacao=t.Pago?(pagoEm is null?"Pago · data não registrada":atraso>0?"Pago com atraso":"Pago no prazo"):atraso>0?"Vencido":"Em aberto";
+            return new PagamentoClienteDto(t.Identificacao,t.Vencimento,pagoEm,t.ValorCentavos/100m,situacao,atraso);
+        }).ToList();
+        return new(clienteId,hoje,parcelas.Count(p=>p.Situacao=="Pago no prazo"),parcelas.Count(p=>p.Situacao=="Pago com atraso"),
+            parcelas.Count(p=>p.Situacao=="Vencido"),parcelas.Count(p=>p.Situacao=="Pago · data não registrada"),parcelas.Select(p=>p.DiasAtraso).DefaultIfEmpty().Max(),
+            titulos.Where(t=>!t.Pago).Sum(t=>t.ValorCentavos)/100m,titulos.Where(t=>!t.Pago && t.Vencimento<hoje).Sum(t=>t.ValorCentavos)/100m,parcelas);
     }
 }

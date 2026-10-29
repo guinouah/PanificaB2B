@@ -1,8 +1,10 @@
 @model List<PanificaB2B.Contratos.ClienteDto>
-@{ ViewData["Title"] = "Clientes"; }
-<h1>Clientes</h1>
-<p>O território define a carteira comercial. A ordem de visita pertence ao roteiro.</p>
-@if (User.IsInRole("Administrador") || User.IsInRole("GestorComercial")) { <a asp-action="Novo" class="btn btn-primary mb-3">Cadastrar cliente</a> }
-<div class="table-responsive"><table class="table"><thead><tr><th>Nome</th><th>Documento</th><th>Contato</th><th>Endereço</th><th>Situação</th></tr></thead><tbody>
-@foreach (var item in Model) { <tr><td><a asp-action="Detalhe" asp-route-id="@item.Id">@item.Nome</a></td><td>@item.Documento</td><td>@item.Email<br />@item.Telefone</td><td>@item.Endereco</td><td>@(item.Ativo ? "Ativo" : "Inativo") @if (User.IsInRole("Administrador") || User.IsInRole("GestorComercial")) { <a asp-action="Editar" asp-route-id="@item.Id">Editar</a> }</td></tr> }
+@{ ViewData["Title"] = "Clientes"; var comercial = User.IsInRole("Administrador") || User.IsInRole("GestorComercial"); }
+<div class="page-heading"><div><span class="eyebrow">RELACIONAMENTO COMERCIAL</span><h1>Clientes</h1><p>Sua carteira, o histórico de compras e a situação de cada cliente.</p></div>@if (comercial) { <a asp-action="Novo" class="btn btn-primary">+ Cadastrar cliente</a> }</div>
+<div class="dashboard"><article><span>Clientes cadastrados</span><strong>@Model.Count</strong><small>Todos os cadastros da carteira</small></article><article><span>Em atividade</span><strong>@Model.Count(x=>x.Ativo)</strong><small>Disponíveis para novos pedidos</small></article><article><span>Inativos</span><strong>@Model.Count(x=>!x.Ativo)</strong><small>Histórico preservado</small></article></div>
+<section class="panel"><div class="panel-head"><div><h2>Carteira de clientes</h2><p>O território define a carteira. A sequência de visita é definida no roteiro.</p></div><input type="search" class="search-box" data-table-search="clientes" placeholder="Buscar nome, documento ou contato…" aria-label="Buscar clientes" /></div>
+<div class="table-responsive"><table class="table" id="clientes"><thead><tr><th>Cliente</th><th>Documento</th><th>Contato</th><th>Endereço</th><th>Situação</th>@if (comercial) { <th></th> }</tr></thead><tbody>
+@foreach (var item in Model) { <tr data-search-row><td><a asp-action="Detalhe" asp-route-id="@item.Id"><strong>@item.Nome</strong></a><small>Ver compras e dívida →</small></td><td>@item.Documento</td><td>@item.Email<small>@item.Telefone</small></td><td>@item.Endereco</td><td><span class="status @(item.Ativo ? "status-ok" : "")">@(item.Ativo ? "Ativo" : "Inativo")</span></td>@if (comercial) { <td><a asp-action="Editar" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm">Editar</a></td> }</tr> }
 </tbody></table></div>
+@if (Model.Count == 0) { <div class="empty-state"><svg class="icon" aria-hidden="true"><use href="#i-clientes"/></svg><strong>Sua carteira começa aqui</strong><p>Os clientes cadastrados aparecerão nesta lista.</p></div> }
+<p class="search-empty" data-search-empty="clientes" role="status">Nenhum cliente encontrado para essa busca.</p></section>

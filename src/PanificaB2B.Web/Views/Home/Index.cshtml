@@ -1,21 +1,28 @@
 @model PanificaB2B.Contratos.PainelDto
 @using PanificaB2B.Contratos
-@{ ViewData["Title"] = "Distribuidora B2B"; bool Tem(string perfis) => perfis.Split(',').Any(User.IsInRole); }
-<h1>Distribuidora de panificação</h1><p>Da carteira do vendedor ao recebimento da venda.</p>
+@{ ViewData["Title"] = "Visão geral"; bool Tem(string perfis) => perfis.Split(',').Any(User.IsInRole); }
+<div class="page-heading"><div><span class="eyebrow">SUA OPERAÇÃO, EM DIA</span><h1>Visão geral</h1><p>Acompanhe o que movimenta a sua distribuidora.</p></div><span class="date-label">@DateTime.Today.ToString("dd 'de' MMMM 'de' yyyy")</span></div>
 @if (ViewBag.Erro is string erro) { <div class="alert alert-warning">@erro</div> }
 <div class="dashboard">
-@if (Tem(Permissoes.ComercialFinanceiro)) { <article><strong>@Model.ClientesAtivos</strong><span>Clientes ativos</span></article> }
-@if (Tem(Permissoes.ConsultaEstoque)) { <article><strong>@Model.ProdutosAtivos</strong><span>Produtos ativos</span></article> }
-@if (Tem(Permissoes.Comercial)) { <article><strong>@Model.PedidosPendentes</strong><span>Pedidos para analisar</span></article> }
-@if (Tem(Permissoes.ComercialFinanceiro)) { <article><strong>@Model.Vendas.ToString("C")</strong><span>Vendas válidas</span></article> }
-@if (Tem(Permissoes.Financeiro)) { <article><strong>@Model.ContasAReceber.ToString("C")</strong><span>Principal a receber</span></article> }
-@if (Tem(Permissoes.Estoque)) { <article><strong>@Model.LotesVencidos</strong><span>Lotes vencidos com saldo</span></article> }
+@if (Tem(Permissoes.Comercial)) { <article class="metric-featured"><svg class="icon metric-icon" aria-hidden="true"><use href="#i-pedidos"/></svg><span>Pedidos para analisar</span><strong>@Model.PedidosPendentes</strong><small>Aguardando atendimento e corte</small></article> }
+@if (Tem(Permissoes.ComercialFinanceiro)) { <article><svg class="icon metric-icon" aria-hidden="true"><use href="#i-clientes"/></svg><span>Clientes ativos</span><strong>@Model.ClientesAtivos</strong><small>Relacionamentos da distribuidora</small></article> }
+@if (Tem(Permissoes.ConsultaEstoque)) { <article><svg class="icon metric-icon" aria-hidden="true"><use href="#i-produto"/></svg><span>Produtos ativos</span><strong>@Model.ProdutosAtivos</strong><small>Catálogo de panificação</small></article> }
+@if (Tem(Permissoes.ComercialFinanceiro)) { <article><svg class="icon metric-icon" aria-hidden="true"><use href="#i-vendas"/></svg><span>Vendas válidas</span><strong>@Model.Vendas.ToString("C")</strong><small>Valor total das vendas não canceladas</small></article> }
+@if (Tem(Permissoes.Financeiro)) { <article><svg class="icon metric-icon" aria-hidden="true"><use href="#i-financeiro"/></svg><span>Principal a receber</span><strong>@Model.ContasAReceber.ToString("C")</strong><small>Parcelas em aberto</small></article> }
+@if (Tem(Permissoes.Estoque)) { <article><svg class="icon metric-icon" aria-hidden="true"><use href="#i-estoque"/></svg><span>Lotes vencidos com saldo</span><strong>@Model.LotesVencidos</strong><small>Produtos que precisam de atenção</small></article> }
 </div>
+<div class="section-heading"><h2>O que vamos fazer agora?</h2><span class="eyebrow mb-0">ACESSO RÁPIDO</span></div>
+<div class="operation-grid">
 @if (Tem(Permissoes.Comercial)) {
-<h2>Operação comercial</h2><ol><li><a asp-controller="Cadastros" asp-action="Index">Estados, cidades, vendedores e territórios</a></li><li><a asp-controller="Clientes" asp-action="Index">Clientes</a> e <a asp-controller="Roteiros" asp-action="Index">roteiros</a></li><li><a asp-controller="Grupos" asp-action="Index">Grupos</a> e <a asp-controller="Produtos" asp-action="Index">produtos</a></li></ol>
-<p><a asp-controller="Pedidos" asp-action="Index" class="btn btn-primary">Analisar pedidos e fazer corte</a></p>
+<article class="operation-card"><span class="operation-icon"><svg class="icon" aria-hidden="true"><use href="#i-pedidos"/></svg></span><h3>Pedidos e cortes</h3><p>Compare a demanda com o estoque e defina o atendimento de cada cliente.</p><a asp-controller="Pedidos" asp-action="Index">Analisar pedidos e fazer corte →</a></article>
+<article class="operation-card"><span class="operation-icon"><svg class="icon" aria-hidden="true"><use href="#i-clientes"/></svg></span><h3>Carteira de clientes</h3><p>Consulte cadastros, últimas compras e a situação financeira do cliente.</p><a asp-controller="Clientes" asp-action="Index">Consultar clientes →</a></article>
+<article class="operation-card"><span class="operation-icon"><svg class="icon" aria-hidden="true"><use href="#i-rota"/></svg></span><h3>Roteiros de visitas</h3><p>Organize o dia do vendedor e a sequência de atendimento da carteira.</p><a asp-controller="Roteiros" asp-action="Index">Organizar roteiros →</a></article>
 }
-@if (Tem(Permissoes.Financeiro)) { <h2>Financeiro</h2><p><a asp-controller="Pagamentos" asp-action="Index" class="btn btn-outline-primary">Formas e condições</a> <a asp-controller="Financeiro" asp-action="Index" class="btn btn-primary">Contas a receber</a></p> }
-@if (Tem(Permissoes.Estoque)) { <h2>Estoque e expedição</h2><p><a asp-controller="Estoque" asp-action="Index" class="btn btn-primary">Lotes e movimentos</a></p> }
-<p><a asp-controller="Vendas" asp-action="Index" class="btn btn-outline-primary">Vendas e entregas</a></p>
-<p class="notice">Demonstração acadêmica: faturamento e nota fiscal simulados.</p>
+@if (Tem(Permissoes.Financeiro)) { <article class="operation-card"><span class="operation-icon"><svg class="icon" aria-hidden="true"><use href="#i-financeiro"/></svg></span><h3>Contas a receber</h3><p>Acompanhe vencimentos e registre os recebimentos das parcelas.</p><a asp-controller="Financeiro" asp-action="Index">Abrir financeiro →</a></article> }
+@if (Tem(Permissoes.Estoque)) { <article class="operation-card"><span class="operation-icon"><svg class="icon" aria-hidden="true"><use href="#i-estoque"/></svg></span><h3>Estoque e validade</h3><p>Controle lotes, entradas e perdas. O vencimento mais próximo sai primeiro.</p><a asp-controller="Estoque" asp-action="Index">Gerenciar estoque →</a></article> }
+<article class="operation-card"><span class="operation-icon"><svg class="icon" aria-hidden="true"><use href="#i-vendas"/></svg></span><h3>Vendas e entregas</h3><p>Consulte o que foi faturado e acompanhe a entrega de cada venda.</p><a asp-controller="Vendas" asp-action="Index">Consultar vendas →</a></article>
+</div>
+<section class="workflow"><h2>Da visita ao recebimento</h2><ol><li><b><em>1</em> Pedido</b>O vendedor envia a solicitação.</li><li><b><em>2</em> Atendimento</b>A central define as quantidades.</li><li><b><em>3</em> Venda e entrega</b>Somente o atendido é faturado.</li><li><b><em>4</em> Recebimento</b>As parcelas ficam no financeiro.</li></ol></section>
+
+@if(User.IsInRole("Administrador")){
+<details class="no-print"><summary>Preparar dados para apresentação</summary><p>Adiciona dados fictícios marcados com [DEMO]: três clientes com históricos de pagamento diferentes, pedidos de 5/8/9, fermento com estoque 15, produtos, condições e roteiro. Repetir a preparação preserva os dados e atendimentos já existentes.</p><form asp-controller="Demonstracao" asp-action="Preparar" method="post" class="inline-form"><label>Senha dos acessos de demonstração<input type="password" name="SenhaAcessos" minlength="12" maxlength="100" required autocomplete="new-password" class="form-control"/></label><button class="btn btn-outline-primary">Carregar demonstração</button></form><p>Acessos criados: vendedor.demo, gestor.demo, financeiro.demo e estoque.demo. A senha é definida neste formulário.</p></details>}

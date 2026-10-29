@@ -35,7 +35,7 @@ public sealed class ClienteOfflinePage : ContentPage
         if (territorio.SelectedIndex < 0) return;
         var ids = dados.Territorios[territorio.SelectedIndex].CidadeIds;
         cidades = dados.Cidades.Where(x => x.Ativo && ids.Contains(x.Id)).ToList();
-        foreach (var c in cidades) cidade.Items.Add(c.Nome);
+        foreach (var c in cidades) cidade.Items.Add($"{c.Nome} · {dados.Estados.FirstOrDefault(e=>e.Id==c.EstadoId)?.Sigla}");
         if (cidade.Items.Count > 0) cidade.SelectedIndex = 0;
     }
     async Task Salvar()

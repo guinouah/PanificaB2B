@@ -27,17 +27,23 @@ public sealed class CadastrosService(DistribuidoraDbContext db)
     public async Task<EstadoDto> SalvarEstado(Guid? id, EstadoEntrada r)
     {
         var x = id is null ? new Estado() : await db.Estados.FindAsync(id) ?? throw new KeyNotFoundException();
-        x.Nome = Nome(r.Nome); x.Sigla = r.Sigla.Trim().ToUpperInvariant(); x.Ativo = r.Ativo;
-        Exigir(x.Sigla.Length == 2 && x.Sigla.All(char.IsLetter), "A sigla deve ter duas letras.");
+        var oficial = LocalidadesBrasil.Estado(r.Sigla);
+        Exigir(oficial is not null && LocalidadesBrasil.Normalizar(r.Nome) == LocalidadesBrasil.Normalizar(oficial.Nome), "Selecione um estado brasileiro válido na lista.");
+        Exigir(id is null || x.Sigla==oficial!.Sigla || !await db.Cidades.AnyAsync(c=>c.EstadoId==x.Id), "O estado possui cidades vinculadas; cadastre a outra UF separadamente.");
+        x.Nome = oficial!.Nome; x.Sigla = oficial.Sigla; x.Ativo = r.Ativo;
         Exigir(!await db.Estados.AnyAsync(e => e.Sigla == x.Sigla && e.Id != x.Id), "Sigla já cadastrada.");
         if (id is null) db.Estados.Add(x);
         await db.SaveChangesAsync(); return Dto(x);
     }
     public async Task<CidadeDto> SalvarCidade(Guid? id, CidadeEntrada r)
     {
-        Exigir(await db.Estados.AnyAsync(e => e.Id == r.EstadoId && (e.Ativo || !r.Ativo)), "Estado inexistente ou inativo.");
+        var estado = await db.Estados.FindAsync(r.EstadoId);
+        Exigir(estado is not null && (estado.Ativo || !r.Ativo), "Estado inexistente ou inativo.");
+        var municipio = LocalidadesBrasil.Cidade(estado!.Sigla, r.Nome);
+        Exigir(municipio is not null, "Selecione um município válido do estado informado.");
+        Exigir(!await db.Cidades.AnyAsync(c=>c.EstadoId==r.EstadoId && c.Nome==municipio!.Nome && c.Id!=id), "Município já cadastrado neste estado.");
         var x = id is null ? new Cidade() : await db.Cidades.FindAsync(id) ?? throw new KeyNotFoundException();
-        x.Nome = Nome(r.Nome); x.EstadoId = r.EstadoId; x.Ativo = r.Ativo;
+        x.Nome = municipio!.Nome; x.EstadoId = r.EstadoId; x.Ativo = r.Ativo;
         if (id is null) db.Cidades.Add(x);
         await db.SaveChangesAsync(); return Dto(x);
     }

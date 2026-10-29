@@ -250,9 +250,9 @@ public static partial class Program
         Verificar(pagamento.Caminho == "/Financeiro" && (await admin.GetFromJsonAsync<List<TituloDto>>("/api/titulos"))!.Single(x => x.Id == titulo.Id).Pago, "Formulário registra recebimento e atualiza a dívida");
         var parcela = await Formulario(site, "/Pagamentos/NovaCondicao", new() { ["Entrada.Codigo"] = "WEB-VISTA", ["Entrada.Nome"] = "À vista pelo site", ["Entrada.Ativo"] = "true", ["Entrada.MultaPercentual"] = "0", ["Entrada.JurosDiariosPercentual"] = "0", ["Entrada.DescontoDiarioPercentual"] = "0", ["Entrada.Parcelas[0].Dias"] = "0", ["Entrada.Parcelas[0].Percentual"] = "100", ["Entrada.Parcelas[0].FormaPagamentoId"] = forma.Id.ToString() });
         Verificar(parcela.Caminho == "/Pagamentos" && (await admin.GetFromJsonAsync<List<CondicaoPagamentoDto>>("/api/condicoes-pagamento"))!.Any(x => x.Codigo == "WEB-VISTA"), "Condição à vista pode ser cadastrada pelo site");
-        await Formulario(site, "/Cadastros/Estado", new() { ["Nome"] = "Estado de teste", ["Sigla"] = "TT", ["Ativo"] = "true" }, "/Cadastros");
-        var estado = (await admin.GetFromJsonAsync<List<EstadoDto>>("/api/estados"))!.Single(x => x.Sigla == "TT");
-        await Formulario(site, "/Cadastros/Cidade", new() { ["Nome"] = "Cidade de teste", ["EstadoId"] = estado.Id.ToString(), ["Ativo"] = "true" }, "/Cadastros");
+        await Formulario(site, "/Cadastros/Estado", new() { ["Nome"] = "Santa Catarina", ["Sigla"] = "SC", ["Ativo"] = "true" }, "/Cadastros");
+        var estado = (await admin.GetFromJsonAsync<List<EstadoDto>>("/api/estados"))!.Single(x => x.Sigla == "SC");
+        await Formulario(site, "/Cadastros/Cidade", new() { ["Nome"] = "Florianópolis", ["EstadoId"] = estado.Id.ToString(), ["Ativo"] = "true" }, "/Cadastros");
         var cidade = (await admin.GetFromJsonAsync<List<CidadeDto>>("/api/cidades"))!.Single(x => x.EstadoId == estado.Id);
         await Formulario(site, "/Cadastros/Vendedor", new() { ["Nome"] = "Vendedor pelo site", ["Ativo"] = "true" }, "/Cadastros");
         var vendedor = (await admin.GetFromJsonAsync<List<VendedorDto>>("/api/vendedores"))!.Single(x => x.Nome == "Vendedor pelo site");

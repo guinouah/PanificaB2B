@@ -346,3 +346,11 @@ As decisões para fechar o fluxo local são:
 Integração fiscal/bancária, publicação pública, aparelho físico, pagamentos parciais e devolução após entrega exigem etapas próprias; não são apresentados como parte da demonstração local concluída.
 
 
+
+### Pontualidade na análise do pedido
+
+A análise do corte apresenta principal em aberto, principal vencido, pagamentos pontuais, pagamentos com atraso, títulos vencidos e o maior atraso observado. A classificação usa vencimento e data efetiva do recebimento. Um pagamento sem data registrada não é presumido pontual. Os títulos cancelados são excluídos. A decisão de distribuição continua manual.
+
+### Descarte e cancelamento no aplicativo
+
+O descarte retira da fila apenas rascunhos, rejeitados ou operações locais prontas, conservando o registro no SQLite como Descartado. O cadastro de cliente não pode ser descartado enquanto possui pedido dependente. Estados de envio incerto não podem ser descartados. Um pedido recebido pela central utiliza a operação de cancelamento online, com motivo, versão atual e autorização da carteira; faturamento já ocorrido impede esse cancelamento.

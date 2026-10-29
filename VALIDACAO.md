@@ -1,3 +1,23 @@
+# Apresentação e cadastros válidos — 28/10/2026
+
+- 217 verificações integradas passaram na saída normal e em compilação isolada: seletores, rejeição da forma numérica 8 no site/API, estado inválido, município de outra UF, demonstração idempotente, histórico de pontualidade no corte, cancelamento pelo vendedor e descarte local com proteção de dependências/envio incerto.
+- API, contratos, site MVC e integração compilados sem avisos ou erros. Aplicativo Windows e APK Android atualizados e compilados sem avisos ou erros; assinatura do APK verificada com v1/v2/v3.
+- JavaScript real dos municípios verificado: seleção inicial preservada, troca de UF elimina município anterior e ausência de UF bloqueia a cidade.
+- Cenário de demonstração carregado no banco local após backup consistente: três pedidos pendentes 5/8/9, fermento com saldo 15 e acessos por perfil. A inclusão preservou os dados anteriores. Não foi publicado banco nem senha.
+- Catálogo de localidades obtido da API oficial do IBGE em 28/10/2026, incluído como recurso local. Não há dependência de internet para selecionar UFs/municípios na apresentação.
+- A API e o site chegaram a iniciar em sessões locais controladas; a tentativa de acesso pelo navegador do agente terminou em timeout. Não foi comprovado teste visual novo nem execução do aplicativo em aparelho/emulador. A conferência manual pelo usuário continua necessária.
+- Os registros detalhados e as credenciais dos acessos preparados permanecem somente nas pastas locais ignoradas.
+
+# Atualização da interface — 28/10/2026
+
+- Site MVC com navegação lateral por perfil, acesso renovado, painel de indicadores, busca de clientes/pedidos e ficha financeira do cliente.
+- Pedidos: demanda agrupada por produto com quantidades por cliente, estoque válido e falta; corte individual com prévia do valor, quantidade cortada e motivo obrigatório quando há redução.
+- Compilação de contratos, API, MVC e integração: zero avisos e erros.
+- 205 verificações integradas passaram em base isolada. O formulário MVC foi exercitado com pedidos de 5/8/9 e cortes de 2/6/7: três vendas somando R$ 150, seis parcelas e estoque final zero. Atendimento acima do pedido e corte sem motivo foram recusados.
+- O JavaScript real foi verificado em ambiente de teste de DOM: prévia integral/parcial/zero, quantidade inválida, aviso de estoque, arredondamento de meio centavo e busca sem acentos.
+- Testes de renderização e submissão usam TestServer. A conferência visual no navegador e no dispositivo continua pendente; não foi comprovada por captura de tela. Não houve alteração nas configurações do Windows.
+- Contas de apresentação, bancos, backups e credenciais permanecem apenas nas pastas locais ignoradas. As senhas utilizadas nos testes automatizados são aleatórias.
+
 # Atualização de permissões — 28/10/2026
 
 - Cinco perfis com permissões da API, menus e páginas separados.

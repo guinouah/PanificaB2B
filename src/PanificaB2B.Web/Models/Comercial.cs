@@ -55,6 +55,7 @@ public sealed class FormPedido
 }
 public sealed class FormFaturamento
 {
+    public HistoricoPagamentosDto? Historico { get; set; }
     public PedidoDto Pedido { get; set; } = null!;
     public FaturamentoEntrada Corte { get; set; } = new();
     public List<LoteDto> Lotes { get; set; } = [];

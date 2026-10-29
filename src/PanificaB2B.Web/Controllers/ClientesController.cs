@@ -13,6 +13,7 @@ public sealed class ClientesController(IHttpClientFactory factory) : Controller
     async Task<FormCliente> Formulario(ClienteEntrada? entrada = null) => new()
     {
         Entrada = entrada ?? new(),
+        Estados = await Api.GetFromJsonAsync<List<EstadoDto>>("api/estados") ?? [],
         Cidades = (await Api.GetFromJsonAsync<List<CidadeDto>>("api/cidades") ?? []).Where(x => x.Ativo || x.Id == entrada?.CidadeId).ToList(),
         Territorios = (await Api.GetFromJsonAsync<List<TerritorioDto>>("api/territorios") ?? []).Where(x => x.Ativo || x.Id == entrada?.TerritorioId).ToList()
     };

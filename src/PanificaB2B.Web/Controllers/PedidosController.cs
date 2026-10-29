@@ -15,7 +15,7 @@ public sealed class PedidosController(IHttpClientFactory factory) : ApiMvcContro
         model.Clientes = (await Api.GetFromJsonAsync<List<ClienteDto>>("api/clientes") ?? []).Where(x => x.Ativo).ToList();
         var gruposAtivos = (await Api.GetFromJsonAsync<List<GrupoProdutoDto>>("api/grupos-produto") ?? []).Where(x => x.Ativo).Select(x => x.Id).ToHashSet();
         model.Produtos = (await Api.GetFromJsonAsync<List<ProdutoDto>>("api/produtos") ?? []).Where(x => x.Ativo && gruposAtivos.Contains(x.GrupoId)).ToList();
-        model.Condicoes = (await Api.GetFromJsonAsync<List<CondicaoPagamentoDto>>("api/condicoes-pagamento") ?? []).Where(x => x.Ativo).ToList();
+        model.Condicoes = (await Api.GetFromJsonAsync<List<CondicaoPagamentoDto>>("api/condicoes-pagamento") ?? []).Where(x => x.Ativo && x.Parcelas.All(p=>CatalogosCadastro.Forma(p.FormaPagamento) is not null)).ToList();
         if (model.Itens.Count == 0) model.Itens = model.Produtos.Select(x => new LinhaPedido { ProdutoId = x.Id, ProdutoVersao = x.Versao, PrecoUnitario = x.PrecoNaData(DateOnly.FromDateTime(DateTime.Today)) }).ToList();
         return model;
     }
@@ -38,17 +38,24 @@ public sealed class PedidosController(IHttpClientFactory factory) : ApiMvcContro
         return View(await Formulario(form));
     }
     async Task<PedidoDto?> Pedido(Guid id) => (await Api.GetFromJsonAsync<List<PedidoDto>>("api/pedidos"))!.SingleOrDefault(x => x.Id == id);
+    async Task<FormFaturamento> FormularioCorte(PedidoDto pedido,FaturamentoEntrada? corte=null) => new()
+    {
+        Pedido=pedido,
+        Corte=corte??new(){Versao=pedido.Versao,Itens=pedido.Itens.Select(i=>new CorteItemEntrada{ItemId=i.Id,Quantidade=i.QuantidadePedida}).ToList()},
+        Lotes=await Api.GetFromJsonAsync<List<LoteDto>>("api/estoque/lotes")??[],
+        Historico=await Api.GetFromJsonAsync<HistoricoPagamentosDto>($"api/clientes/{pedido.ClienteId}/historico-pagamentos")
+    };
     public async Task<IActionResult> Detalhe(Guid id)
     {
         var p = await Pedido(id);
-        return p is null ? NotFound() : View(new FormFaturamento { Pedido = p, Corte = new() { Versao = p.Versao, Itens = p.Itens.Select(x => new CorteItemEntrada { ItemId = x.Id, Quantidade = x.QuantidadePedida }).ToList() }, Lotes = await Api.GetFromJsonAsync<List<LoteDto>>("api/estoque/lotes") ?? [] });
+        return p is null ? NotFound() : View(await FormularioCorte(p));
     }
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Faturar(Guid id, [Bind(Prefix = "Corte")] FaturamentoEntrada r)
     {
         if (ModelState.IsValid && await Gravar($"api/pedidos/{id}/faturar", r)) { Sucesso("Atendimento confirmado; estoque e parcelas atualizados."); return RedirectToAction(nameof(Detalhe), new { id }); }
         var pedido = await Pedido(id);
-        return pedido is null ? NotFound() : View("Detalhe", new FormFaturamento { Pedido = pedido, Corte = r, Lotes = await Api.GetFromJsonAsync<List<LoteDto>>("api/estoque/lotes") ?? [] });
+        return pedido is null ? NotFound() : View("Detalhe", await FormularioCorte(pedido,r));
     }
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancelar(Guid id, CancelamentoEntrada r)
