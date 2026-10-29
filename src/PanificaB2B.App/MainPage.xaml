@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="PanificaB2B.App.MainPage" Title="Carteira e roteiro">
+    <ScrollView><VerticalStackLayout Padding="24" Spacing="16">
+        <Label Text="Panifica B2B" FontSize="28" FontAttributes="Bold" />
+        <Label Text="Entre para baixar sua carteira. Após o download, os dados ficam disponíveis sem conexão neste dispositivo." />
+        <Label Text="Endereço da API de teste" />
+        <Entry x:Name="EnderecoApi" Text="http://localhost:5187/" Keyboard="Url" />
+        <Entry x:Name="LoginEntry" Placeholder="Login do vendedor" />
+        <Entry x:Name="SenhaEntry" Placeholder="Senha" IsPassword="True" />
+        <Button x:Name="EntrarButton" Text="Entrar" Clicked="Entrar" />
+        <Button x:Name="SairButton" Text="Sair" Clicked="Sair" IsEnabled="False" />
+        <Label x:Name="UsuarioLabel" />
+        <Button x:Name="TrabalharButton" Text="Carteira, produtos e pedidos offline" Clicked="AbrirTrabalho" IsEnabled="False" />
+        <Button x:Name="BaixarButton" Text="Atualizar carteira, preços, histórico e pedidos" Clicked="BaixarCarteira" IsEnabled="False" />
+        <Label x:Name="SituacaoLabel" Text="Nenhuma carteira carregada." FontAttributes="Bold" />
+        <Label Text="Última carteira salva neste dispositivo" FontSize="20" />
+        <VerticalStackLayout x:Name="CarteiraLista" Spacing="8" />
+        <Label Text="Roteiros por dia" FontSize="20" />
+        <VerticalStackLayout x:Name="RoteirosLista" Spacing="8" />
+    </VerticalStackLayout></ScrollView>
+</ContentPage>
+

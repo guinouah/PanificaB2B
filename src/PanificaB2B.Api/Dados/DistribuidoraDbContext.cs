@@ -1,0 +1,97 @@
+using Microsoft.EntityFrameworkCore;
+using PanificaB2B.Api.Modelos;
+
+namespace PanificaB2B.Api.Dados;
+
+public sealed class DistribuidoraDbContext(DbContextOptions<DistribuidoraDbContext> options) : DbContext(options)
+{
+    public DbSet<Estado> Estados => Set<Estado>();
+    public DbSet<Cidade> Cidades => Set<Cidade>();
+    public DbSet<Vendedor> Vendedores => Set<Vendedor>();
+    public DbSet<Territorio> Territorios => Set<Territorio>();
+    public DbSet<TerritorioCidade> TerritorioCidades => Set<TerritorioCidade>();
+    public DbSet<Cliente> Clientes => Set<Cliente>();
+    public DbSet<Roteiro> Roteiros => Set<Roteiro>();
+    public DbSet<ItemRoteiro> ItensRoteiro => Set<ItemRoteiro>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<SessaoAcesso> SessoesAcesso => Set<SessaoAcesso>();
+    public DbSet<GrupoProduto> GruposProduto => Set<GrupoProduto>();
+    public DbSet<Produto> Produtos => Set<Produto>();
+    public DbSet<FormaPagamento> FormasPagamento => Set<FormaPagamento>();
+    public DbSet<CondicaoPagamento> CondicoesPagamento => Set<CondicaoPagamento>();
+    public DbSet<ParcelaCondicao> ParcelasCondicao => Set<ParcelaCondicao>();
+    public DbSet<LoteEstoque> Lotes => Set<LoteEstoque>();
+    public DbSet<MovimentoEstoque> Movimentos => Set<MovimentoEstoque>();
+    public DbSet<Pedido> Pedidos => Set<Pedido>();
+    public DbSet<ItemPedido> ItensPedido => Set<ItemPedido>();
+    public DbSet<Venda> Vendas => Set<Venda>();
+    public DbSet<ItemVenda> ItensVenda => Set<ItemVenda>();
+    public DbSet<TituloReceber> Titulos => Set<TituloReceber>();
+    public DbSet<Recebimento> Recebimentos => Set<Recebimento>();
+    protected override void OnModelCreating(ModelBuilder m)
+    {
+        m.Entity<Produto>().HasIndex(x => x.Codigo).IsUnique();
+        m.Entity<Produto>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<Produto>().HasOne<GrupoProduto>().WithMany().HasForeignKey(x => x.GrupoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Produto>().ToTable(t => t.HasCheckConstraint("CK_Produto_Preco", "PrecoCentavos > 0"));
+        m.Entity<FormaPagamento>().HasIndex(x => x.NomeNormalizado).IsUnique();
+        m.Entity<CondicaoPagamento>().HasIndex(x => x.Codigo).IsUnique();
+        m.Entity<CondicaoPagamento>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<CondicaoPagamento>().HasMany(x => x.Parcelas).WithOne().HasForeignKey(x => x.CondicaoId);
+        m.Entity<ParcelaCondicao>().HasIndex(x => new { x.CondicaoId, x.Numero }).IsUnique();
+        m.Entity<ParcelaCondicao>().HasOne<FormaPagamento>().WithMany().HasForeignKey(x => x.FormaPagamentoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<LoteEstoque>().HasIndex(x => new { x.ProdutoId, x.Codigo }).IsUnique();
+        m.Entity<LoteEstoque>().HasOne<Produto>().WithMany().HasForeignKey(x => x.ProdutoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<LoteEstoque>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<LoteEstoque>().ToTable(t => t.HasCheckConstraint("CK_Lote_Saldo", "SaldoMilesimos >= 0"));
+        m.Entity<MovimentoEstoque>().HasOne<LoteEstoque>().WithMany().HasForeignKey(x => x.LoteId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<MovimentoEstoque>().HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<MovimentoEstoque>().HasOne<Venda>().WithMany().HasForeignKey(x => x.VendaId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Pedido>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<Pedido>().HasOne<Cliente>().WithMany().HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Pedido>().HasOne<Vendedor>().WithMany().HasForeignKey(x => x.VendedorId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Pedido>().HasOne<CondicaoPagamento>().WithMany().HasForeignKey(x => x.CondicaoPagamentoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Pedido>().HasMany(x => x.Itens).WithOne().HasForeignKey(x => x.PedidoId);
+        m.Entity<ItemPedido>().HasOne<Produto>().WithMany().HasForeignKey(x => x.ProdutoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<ItemPedido>().HasIndex(x => new { x.PedidoId, x.ProdutoId }).IsUnique();
+        m.Entity<Venda>().HasIndex(x => x.PedidoId).IsUnique();
+        m.Entity<Venda>().HasIndex(x => x.Numero).IsUnique();
+        m.Entity<Venda>().HasOne<Pedido>().WithMany().HasForeignKey(x => x.PedidoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Venda>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<Venda>().HasMany(x => x.Itens).WithOne().HasForeignKey(x => x.VendaId);
+        m.Entity<ItemVenda>().HasOne<Produto>().WithMany().HasForeignKey(x => x.ProdutoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<TituloReceber>().HasOne<Venda>().WithMany().HasForeignKey(x => x.VendaId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<TituloReceber>().HasIndex(x => new { x.VendaId, x.Parcela }).IsUnique();
+        m.Entity<TituloReceber>().HasIndex(x => x.Identificacao).IsUnique();
+        m.Entity<TituloReceber>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<TituloReceber>().HasOne<FormaPagamento>().WithMany().HasForeignKey(x => x.FormaPagamentoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Recebimento>().HasOne<TituloReceber>().WithMany().HasForeignKey(x => x.TituloId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Recebimento>().HasIndex(x => x.TituloId).IsUnique();
+        m.Entity<Recebimento>().HasOne<FormaPagamento>().WithMany().HasForeignKey(x => x.FormaPagamentoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<GrupoProduto>().Property(x => x.Nome).HasMaxLength(100);
+        m.Entity<GrupoProduto>().HasIndex(x => x.NomeNormalizado).IsUnique();
+        m.Entity<GrupoProduto>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<Usuario>().HasIndex(x => x.LoginNormalizado).IsUnique();
+        m.Entity<Usuario>().HasIndex(x => x.VendedorId).IsUnique().HasFilter("\"VendedorId\" IS NOT NULL");
+        m.Entity<Usuario>().HasOne<Vendedor>().WithMany().HasForeignKey(x => x.VendedorId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Usuario>().ToTable(t => t.HasCheckConstraint("CK_Usuario_Perfil", "(Perfil IN (1, 3, 4, 5) AND VendedorId IS NULL) OR (Perfil = 2 AND VendedorId IS NOT NULL)"));
+        m.Entity<SessaoAcesso>().HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Estado>().HasIndex(x => x.Sigla).IsUnique();
+        m.Entity<Cidade>().HasOne<Estado>().WithMany().HasForeignKey(x => x.EstadoId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Territorio>().HasOne<Vendedor>().WithMany().HasForeignKey(x => x.VendedorId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Territorio>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<TerritorioCidade>().HasKey(x => new { x.TerritorioId, x.CidadeId });
+        m.Entity<Territorio>().HasMany(x => x.Cidades).WithOne().HasForeignKey(x => x.TerritorioId);
+        m.Entity<TerritorioCidade>().HasOne<Cidade>().WithMany().HasForeignKey(x => x.CidadeId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Cliente>().HasOne<Cidade>().WithMany().HasForeignKey(x => x.CidadeId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Cliente>().HasOne<Territorio>().WithMany().HasForeignKey(x => x.TerritorioId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Cliente>().HasIndex(x => x.Documento).IsUnique().HasFilter("\"Documento\" <> ''");
+        m.Entity<Cliente>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<Roteiro>().HasOne<Vendedor>().WithMany().HasForeignKey(x => x.VendedorId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<Roteiro>().HasMany(x => x.Visitas).WithOne().HasForeignKey(x => x.RoteiroId);
+        m.Entity<Roteiro>().Property(x => x.Versao).IsConcurrencyToken();
+        m.Entity<ItemRoteiro>().HasOne<Cliente>().WithMany().HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Restrict);
+        m.Entity<ItemRoteiro>().HasIndex(x => new { x.RoteiroId, x.Sequencia }).IsUnique();
+        m.Entity<ItemRoteiro>().HasIndex(x => new { x.RoteiroId, x.ClienteId }).IsUnique();
+    }
+}
