@@ -1,3 +1,12 @@
+# Interface do aplicativo — 29/10/2026
+
+- Tela inicial, carteira/roteiro, catálogo, ficha do cliente, cadastro offline, montagem do pedido e fila de envio receberam a identidade visual em verde e fundo claro. Busca de clientes/produtos, cartões de dívida e última compra, destaques de promoção/novidade e prévia do pedido foram incluídos.
+- Compilações da interface concluídas em 28/10/2026: MAUI Windows x64 e Android com zero avisos e erros. Em 29/10/2026, apksigner confirmou novamente as assinaturas v1/v2/v3 do APK atualizado.
+- Aplicativo Windows executado e observado em 29/10/2026 com a carteira de demonstração já salva e sessão expirada: tela inicial, acesso offline à carteira, busca por Aurora retornando um cliente, ficha com dívida e última compra, catálogo com promoção/novidade, busca por fermento e página de pendências vazia.
+- Na montagem do pedido, o botão + elevou a mistura de 0 para 1 e a prévia para R$ 47,00; a digitação 2,5 atualizou a prévia para R$ 117,50. A navegação de volta não salvou nem enviou esse pedido.
+- Esta conferência visual não exerceu novo login, download, salvamento ou envio à API. O cadastro offline e as ações de revisão/cancelamento/descarte não foram executados nesta rodada. A execução em Android e o fluxo manual completo ainda precisam ser conferidos. Os 217 testes da rodada anterior continuam como evidência histórica; não foram repetidos para esta mudança visual.
+- Captura da interface e logs de compilação permanecem em validacao/, excluídos da publicação junto com bancos e credenciais. Nenhuma configuração permanente da máquina foi alterada.
+
 # Apresentação e cadastros válidos — 28/10/2026
 
 - 217 verificações integradas passaram na saída normal e em compilação isolada: seletores, rejeição da forma numérica 8 no site/API, estado inválido, município de outra UF, demonstração idempotente, histórico de pontualidade no corte, cancelamento pelo vendedor e descarte local com proteção de dependências/envio incerto.

@@ -1,22 +1,41 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="PanificaB2B.App.MainPage" Title="Carteira e roteiro">
-    <ScrollView><VerticalStackLayout Padding="24" Spacing="16">
-        <Label Text="Panifica B2B" FontSize="28" FontAttributes="Bold" />
-        <Label Text="Entre para baixar sua carteira. Após o download, os dados ficam disponíveis sem conexão neste dispositivo." />
-        <Label Text="Endereço da API de teste" />
-        <Entry x:Name="EnderecoApi" Text="http://localhost:5187/" Keyboard="Url" />
-        <Entry x:Name="LoginEntry" Placeholder="Login do vendedor" />
-        <Entry x:Name="SenhaEntry" Placeholder="Senha" IsPassword="True" />
-        <Button x:Name="EntrarButton" Text="Entrar" Clicked="Entrar" />
-        <Button x:Name="SairButton" Text="Sair" Clicked="Sair" IsEnabled="False" />
-        <Label x:Name="UsuarioLabel" />
-        <Button x:Name="TrabalharButton" Text="Carteira, produtos e pedidos offline" Clicked="AbrirTrabalho" IsEnabled="False" />
-        <Button x:Name="BaixarButton" Text="Atualizar carteira, preços, histórico e pedidos" Clicked="BaixarCarteira" IsEnabled="False" />
-        <Label x:Name="SituacaoLabel" Text="Nenhuma carteira carregada." FontAttributes="Bold" />
-        <Label Text="Última carteira salva neste dispositivo" FontSize="20" />
-        <VerticalStackLayout x:Name="CarteiraLista" Spacing="8" />
-        <Label Text="Roteiros por dia" FontSize="20" />
-        <VerticalStackLayout x:Name="RoteirosLista" Spacing="8" />
-    </VerticalStackLayout></ScrollView>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="PanificaB2B.App.MainPage" Title="Panifica · Vendas" Shell.NavBarIsVisible="False">
+<ScrollView><VerticalStackLayout Padding="22,28" Spacing="20" MaximumWidthRequest="780" HorizontalOptions="Fill">
+    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+        <Label Text="panifica." FontFamily="OpenSansSemibold" FontSize="32" TextColor="#183F35" />
+        <Border Grid.Column="1" Padding="10,6" StrokeThickness="0" BackgroundColor="#EAF0E5" StrokeShape="RoundRectangle 7" VerticalOptions="Center"><Label Text="ÁREA DO VENDEDOR" FontSize="9" CharacterSpacing="1.2" TextColor="#183F35" /></Border>
+    </Grid>
+    <Border BackgroundColor="#183F35" StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="24">
+        <VerticalStackLayout Spacing="10"><Label Text="BOAS VENDAS COMEÇAM AQUI" TextColor="#C3D5BB" FontSize="10" CharacterSpacing="1.5"/>
+            <Label Text="Sua carteira.&#10;Sua próxima boa venda." FontFamily="OpenSansSemibold" FontSize="29" TextColor="#FFF9E8"/>
+            <Label Text="Clientes, roteiro e pedidos sempre por perto. Trabalhe com a carteira salva mesmo sem conexão." TextColor="#CEE0CF" FontSize="13"/>
+        </VerticalStackLayout>
+    </Border>
+    <Border x:Name="LoginPanel" BackgroundColor="White" StrokeShape="RoundRectangle 16" Padding="22">
+        <VerticalStackLayout Spacing="14"><Label Text="Entre na sua conta" FontFamily="OpenSansSemibold" FontSize="22"/><Label Text="Use o acesso de vendedor criado pela distribuidora." TextColor="#687B6B" FontSize="12"/>
+            <VerticalStackLayout Spacing="4"><Label Text="Login" FontSize="12"/><Entry x:Name="LoginEntry" Placeholder="Seu login de vendedor" ReturnType="Next" AutomationId="LoginVendedor"/></VerticalStackLayout>
+            <VerticalStackLayout Spacing="4"><Label Text="Senha" FontSize="12"/><Entry x:Name="SenhaEntry" Placeholder="Sua senha" IsPassword="True" ReturnType="Done" AutomationId="SenhaVendedor"/></VerticalStackLayout>
+            <Button x:Name="EntrarButton" Text="Entrar na minha conta →" Clicked="Entrar"/>
+            <Button Text="Configuração da conexão" Clicked="AlternarConexao" Style="{StaticResource SecondaryButton}"/>
+            <VerticalStackLayout x:Name="ApiConfig" IsVisible="False" Spacing="5"><Label Text="Endereço da API de demonstração" FontSize="11" TextColor="#687B6B"/><Entry x:Name="EnderecoApi" Text="http://localhost:5187/" Keyboard="Url"/></VerticalStackLayout>
+        </VerticalStackLayout>
+    </Border>
+    <ActivityIndicator x:Name="BusyIndicator" IsVisible="False" IsRunning="False"/>
+    <Label x:Name="SituacaoLabel" Text="Entre para preparar sua carteira de trabalho." TextColor="#687B6B" FontSize="12" Margin="3,0"/>
+    <VerticalStackLayout x:Name="DashboardPanel" IsVisible="False" Spacing="18">
+        <Grid ColumnDefinitions="*,Auto"><Label x:Name="UsuarioLabel" FontFamily="OpenSansSemibold" FontSize="17" VerticalOptions="Center"/><Button Grid.Column="1" x:Name="SairButton" Text="Sair" Clicked="Sair" IsEnabled="False" Style="{StaticResource SecondaryButton}"/></Grid>
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+            <Border BackgroundColor="White" StrokeShape="RoundRectangle 14" Padding="14"><VerticalStackLayout Spacing="3"><Label x:Name="TotalClientesLabel" Text="0" FontSize="25" FontFamily="OpenSansSemibold" TextColor="#183F35"/><Label Text="Clientes" FontSize="11" TextColor="#687B6B"/></VerticalStackLayout></Border>
+            <Border Grid.Column="1" BackgroundColor="White" StrokeShape="RoundRectangle 14" Padding="14"><VerticalStackLayout Spacing="3"><Label x:Name="TotalProdutosLabel" Text="0" FontSize="25" FontFamily="OpenSansSemibold" TextColor="#183F35"/><Label Text="Produtos" FontSize="11" TextColor="#687B6B"/></VerticalStackLayout></Border>
+            <Border Grid.Column="2" BackgroundColor="White" StrokeShape="RoundRectangle 14" Padding="14"><VerticalStackLayout Spacing="3"><Label x:Name="TotalRoteirosLabel" Text="0" FontSize="25" FontFamily="OpenSansSemibold" TextColor="#183F35"/><Label Text="Roteiros" FontSize="11" TextColor="#687B6B"/></VerticalStackLayout></Border>
+        </Grid>
+        <Button x:Name="TrabalharButton" Text="Abrir minha carteira →" Clicked="AbrirTrabalho" IsEnabled="False"/>
+        <Button x:Name="BaixarButton" Text="Atualizar carteira, preços e pedidos" Clicked="BaixarCarteira" IsEnabled="False" Style="{StaticResource SecondaryButton}"/>
+        <Label Text="PRÉVIA DA CARTEIRA" CharacterSpacing="1.5" FontSize="10" TextColor="#687B6B" Margin="2,8,0,0"/>
+        <VerticalStackLayout x:Name="CarteiraLista" Spacing="10"/>
+        <Label Text="SEUS ROTEIROS" CharacterSpacing="1.5" FontSize="10" TextColor="#687B6B" Margin="2,8,0,0"/>
+        <VerticalStackLayout x:Name="RoteirosLista" Spacing="10"/>
+    </VerticalStackLayout>
+    <Label Text="Panifica B2B · Da visita ao pedido confirmado" FontSize="10" TextColor="#687B6B" HorizontalTextAlignment="Center" Margin="0,8"/>
+</VerticalStackLayout></ScrollView>
 </ContentPage>
-

@@ -8,8 +8,8 @@
 4. Atenda **2**, **6** e **7**, respectivamente, informando o motivo do corte. Cada confirmação reduz o estoque; o total entregue é **15 unidades** e **R$ 150**. Os pedidos históricos da demonstração são separados destes três pedidos pendentes.
 5. Mostre as vendas e as seis parcelas geradas pela condição em 7 e 14 dias.
 6. Em **Pagamentos**, confira que a nova forma exige selecionar uma opção. Em **Cadastros**, selecione UF e município. A API também recusa opções inválidas.
-7. No aplicativo, entre como **vendedor.demo** com a senha definida na preparação, atualize a carteira e confira o roteiro. Para testar cancelamento online, use um pedido recebido que ainda não tenha sido faturado. Para testar descarte offline, crie um rascunho e use **Descartar pedido**.
-8. A execução em aparelho/emulador e a verificação visual continuam sendo etapas manuais; as verificações automatizadas não substituem esses testes.
+7. No aplicativo, entre como **vendedor.demo** com a senha definida na preparação, atualize a carteira e confira o roteiro. Para testar cancelamento online, use um pedido recebido que ainda não tenha sido faturado. Para testar descarte offline, crie um rascunho e use **Descartar**.
+8. A interface foi conferida no Windows com a carteira salva; a execução em Android e o fluxo completo de sincronização continuam sendo etapas manuais.
 
 ## 1. Abrir e preparar
 
@@ -47,11 +47,11 @@ Não precisa esperar nenhum horário para fazer o pedido ou enviá-lo; 12h e 19h
 1. Em **Acessos** no site, crie login/senha de perfil Vendedor, vinculado ao cadastro comercial da carteira utilizada. A senha deve ter pelo menos doze caracteres.
 2. Execute `testar-aplicativo.cmd` para Windows ou abra o projeto MAUI no Visual Studio com o destino desejado.
 3. Entre como vendedor. No Windows, use a API `http://localhost:5187/`; no emulador Android, `http://10.0.2.2:5187/`.
-4. Toque em **Atualizar carteira, preços, histórico e pedidos**.
-5. Abra **Carteira, produtos e pedidos offline**. Confira roteiro, dívida datada, catálogo e a quantidade da última compra efetiva.
+4. Toque em **Atualizar carteira, preços e pedidos**.
+5. Toque em **Abrir minha carteira**. Confira roteiro, busca de clientes, dívida datada e última compra. Em **Produtos**, teste a busca e os destaques. Na ficha do cliente, toque em **+ Montar pedido**, ajuste as quantidades e confira a prévia. **Conferir pedido** solicita confirmação para deixá-lo pronto; **Salvar rascunho** conserva o trabalho sem envio.
 6. Para simular falta de internet sem alterar a máquina, encerre somente a janela da API. O SQLite local deve continuar permitindo consulta e salvamento.
 7. Cadastre um novo cliente offline dentro de um território baixado e monte um pedido para ele. Salve um rascunho e outro pedido pronto para envio.
-8. Na tela **Pedidos locais e envio**, tente enviar com a API desligada. A operação deve continuar pendente. O rascunho não entra no envio.
+8. Na tela **Pedidos e envio**, tente enviar com a API desligada. A operação deve continuar pendente. O rascunho não entra no envio.
 9. Reabra a API pelo comando abaixo, em um PowerShell na pasta da solução; mantenha o site já aberto:
 
 ```powershell

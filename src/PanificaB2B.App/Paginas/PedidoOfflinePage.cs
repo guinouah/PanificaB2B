@@ -13,7 +13,9 @@ public sealed class PedidoOfflinePage : ContentPage
     readonly Picker condicao = new() { Title = "Condição de pagamento" };
     readonly Entry observacao = new() { Placeholder = "Observação", MaxLength = 300 };
     readonly Dictionary<Guid, Entry> quantidades = [];
-    readonly Label erro = new() { TextColor = Colors.IndianRed };
+    readonly Label erro = new() { TextColor = Color.FromArgb("#A84E37") };
+    readonly Label totalResumo = TemaVenda.Titulo("R$ 0,00",28);
+    readonly Label produtosResumo = TemaVenda.Legenda("Nenhum produto selecionado");
     public PedidoOfflinePage(PreparacaoDto dados, ClienteDto cliente, TrabalhoLocal trabalho, PedidoEntrada? pedido = null)
     {
         this.dados = dados; this.cliente = cliente; this.trabalho = trabalho;
@@ -22,26 +24,47 @@ public sealed class PedidoOfflinePage : ContentPage
         foreach (var c in dados.CondicoesPagamento) condicao.Items.Add(c.Nome + " · " + string.Join("/", c.Parcelas.Select(x => x.Dias)) + " dias");
         condicao.SelectedIndex = pedido is null ? (condicao.Items.Count > 0 ? 0 : -1) : dados.CondicoesPagamento.FindIndex(x => x.Id == pedido.CondicaoPagamentoId);
         observacao.Text = entrada.Observacao;
-        var corpo = new VerticalStackLayout { Padding = 20, Spacing = 12, Children = { InterfaceVenda.Texto(cliente.Nome, true), InterfaceVenda.Texto("Salvo neste dispositivo. A distribuidora só receberá após confirmar o envio."), condicao, observacao } };
-        var hoje = DateOnly.FromDateTime(DateTime.Today);
-        var antigos = dados.UltimasCompras.Where(x => x.ClienteId == cliente.Id).ToDictionary(x => x.ProdutoId);
-        if (entrada.Itens.Any(i => dados.Produtos.All(p => p.Id != i.ProdutoId))) corpo.Children.Add(InterfaceVenda.Texto("Um produto deste rascunho saiu do catálogo e será removido ao salvar. Confira os itens."));
-        foreach (var produto in dados.Produtos.OrderByDescending(p => antigos.ContainsKey(p.Id)).ThenBy(p => p.Nome))
+        var corpo=TemaVenda.Corpo();
+        corpo.Children.Add(TemaVenda.Cabecalho("NOVO PEDIDO",cliente.Nome,"Monte o pedido durante a visita. Salvar não envia nada automaticamente."));
+        corpo.Children.Add(TemaVenda.Cartao(TemaVenda.Campo("Condição de pagamento",condicao),TemaVenda.Campo("Observação para a distribuidora",observacao)));
+        corpo.Children.Add(TemaVenda.Titulo("Escolha os produtos",20));
+        var hoje=DateOnly.FromDateTime(DateTime.Today);
+        var antigos=dados.UltimasCompras.Where(x=>x.ClienteId==cliente.Id).ToDictionary(x=>x.ProdutoId);
+        if(entrada.Itens.Any(i=>dados.Produtos.All(p=>p.Id!=i.ProdutoId)))corpo.Children.Add(TemaVenda.Legenda("Um produto deste rascunho saiu do catálogo e será removido ao salvar. Confira os itens."));
+        foreach(var produto in dados.Produtos.OrderByDescending(p=>antigos.ContainsKey(p.Id)).ThenBy(p=>p.Nome))
         {
-            var quantidade = entrada.Itens.FirstOrDefault(x => x.ProdutoId == produto.Id)?.Quantidade ?? 0;
-            var campo = new Entry { Placeholder = "Quantidade", Keyboard = Keyboard.Numeric, Text = quantidade.ToString(CultureInfo.InvariantCulture), TextColor = Colors.Black, BackgroundColor = Colors.White, PlaceholderColor = Colors.DimGray };
-            quantidades[produto.Id] = campo;
-            var ultimo = antigos.TryGetValue(produto.Id, out var compra) ? $"\nÚltima: {compra.Quantidade} em {compra.Data:dd/MM/yyyy} a {InterfaceVenda.Dinheiro(compra.PrecoUnitario)}" : "";
-            var descricao = InterfaceVenda.Texto($"{produto.Nome} · {produto.Unidade}\nPreço atual: {InterfaceVenda.Dinheiro(produto.PrecoNaData(hoje))} {(produto.EmPromocao(hoje) ? "PROMOÇÃO" : "")} {(produto.Novidade(hoje) ? "NOVO" : "")}{ultimo}");
-            if (produto.EmPromocao(hoje) || produto.Novidade(hoje)) descricao.TextColor = Colors.Black;
-            var linha = new VerticalStackLayout { Padding = 12, Children = { descricao, campo },
-                BackgroundColor = produto.EmPromocao(hoje) ? Color.FromArgb("#FFF0A8") : produto.Novidade(hoje) ? Color.FromArgb("#DFF0FF") : Colors.Transparent };
-            corpo.Children.Add(linha);
+            var quantidade=entrada.Itens.FirstOrDefault(i=>i.ProdutoId==produto.Id)?.Quantidade??0;
+            var campo=new Entry{Placeholder="0",Keyboard=Keyboard.Numeric,MaxLength=16,Text=quantidade.ToString(CultureInfo.InvariantCulture),HorizontalTextAlignment=TextAlignment.Center,AutomationId="Quantidade_"+produto.Codigo};
+            quantidades[produto.Id]=campo;campo.TextChanged+=(_,_)=>AtualizarResumo();
+            var card=TemaVenda.Cartao(TemaVenda.Legenda(produto.Grupo+" · "+produto.Unidade),TemaVenda.Titulo(produto.Nome,18),TemaVenda.Titulo(InterfaceVenda.Dinheiro(produto.PrecoNaData(hoje)),22));
+            var painel=(VerticalStackLayout)card.Content!;
+            var etiquetas=new HorizontalStackLayout{Spacing=8};
+            if(produto.EmPromocao(hoje))etiquetas.Children.Add(TemaVenda.Etiqueta("PROMOÇÃO",true));
+            if(produto.Novidade(hoje))etiquetas.Children.Add(TemaVenda.Etiqueta("NOVO",azul:true));
+            if(etiquetas.Children.Count>0)painel.Children.Insert(0,etiquetas);
+            if(antigos.TryGetValue(produto.Id,out var compra))painel.Children.Add(TemaVenda.Legenda($"Última compra: {compra.Quantidade} em {compra.Data:dd/MM/yyyy} · {InterfaceVenda.Dinheiro(compra.PrecoUnitario)} por unidade"));
+            void Mudar(decimal diferenca){campo.Text=Math.Clamp(InterfaceVenda.Numero(campo.Text)+diferenca,0,1000000).ToString(CultureInfo.InvariantCulture);}
+            var menos=InterfaceVenda.Botao("−",()=>{Mudar(-1);return Task.CompletedTask;},true);menos.WidthRequest=48;
+            var mais=InterfaceVenda.Botao("+",()=>{Mudar(1);return Task.CompletedTask;},true);mais.WidthRequest=48;
+            var controles=new Grid{ColumnDefinitions={new ColumnDefinition(GridLength.Auto),new ColumnDefinition(GridLength.Star),new ColumnDefinition(GridLength.Auto)},ColumnSpacing=10};
+            controles.Add(menos,0,0);controles.Add(campo,1,0);controles.Add(mais,2,0);
+            painel.Children.Add(TemaVenda.Campo("Quantidade · "+produto.Unidade,controles));corpo.Children.Add(card);
         }
+        corpo.Children.Add(TemaVenda.Cartao(TemaVenda.Legenda("PRÉVIA DO PEDIDO"),totalResumo,produtosResumo,TemaVenda.Legenda("A quantidade final e o faturamento serão confirmados pela distribuidora.")));
         corpo.Children.Add(erro);
-        corpo.Children.Add(InterfaceVenda.Botao("Salvar rascunho", () => Salvar(false)));
-        corpo.Children.Add(InterfaceVenda.Botao("Conferir e deixar pronto para envio", () => Salvar(true)));
-        Content = new ScrollView { Content = corpo };
+        corpo.Children.Add(InterfaceVenda.Botao("Conferir pedido →",()=>Salvar(true)));
+        corpo.Children.Add(InterfaceVenda.Botao("Salvar rascunho",()=>Salvar(false),true));
+        Content=TemaVenda.Pagina(corpo);AtualizarResumo();
+    }
+    void AtualizarResumo()
+    {
+        try
+        {
+            var itens=dados.Produtos.Where(p=>quantidades.ContainsKey(p.Id)).Select(p=>new{Quantidade=InterfaceVenda.Numero(quantidades[p.Id].Text),Preco=p.PrecoNaData(DateOnly.FromDateTime(DateTime.Today))}).Where(i=>i.Quantidade>0).ToList();
+            totalResumo.Text=InterfaceVenda.Dinheiro(itens.Sum(i=>decimal.Round(i.Quantidade*i.Preco,2,MidpointRounding.AwayFromZero)));
+            produtosResumo.Text=$"{itens.Count} produto(s) selecionado(s)";totalResumo.TextColor=TemaVenda.Verde;
+        }
+        catch(Exception ex) when(ex is InvalidOperationException or OverflowException){totalResumo.Text="Confira as quantidades";totalResumo.TextColor=Color.FromArgb("#A84E37");produtosResumo.Text="Use valores positivos com até três casas decimais.";}
     }
     async Task Salvar(bool pronto)
     {

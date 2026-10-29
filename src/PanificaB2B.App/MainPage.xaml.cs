@@ -46,6 +46,7 @@ public partial class MainPage : ContentPage
         catch (Exception) { LimparSessao(); SituacaoLabel.Text = "Entre novamente para identificar sua carteira."; }
         Habilitar(true);
     }
+    void AlternarConexao(object? sender, EventArgs e) => ApiConfig.IsVisible = !ApiConfig.IsVisible;
     Uri Raiz()
     {
         var endereco = sessao?.ApiUrl ?? EnderecoApi.Text;
@@ -63,6 +64,9 @@ public partial class MainPage : ContentPage
     void Habilitar(bool ativo)
     {
         EntrarButton.IsEnabled = ativo;
+        BusyIndicator.IsRunning = !ativo; BusyIndicator.IsVisible = !ativo;
+        LoginPanel.IsVisible = sessao is null || sessao.ExpiraEm <= DateTimeOffset.UtcNow;
+        DashboardPanel.IsVisible = sessao is not null;
         SairButton.IsEnabled = ativo && sessao is not null;
         TrabalharButton.IsEnabled = ativo && sessao is not null;
         BaixarButton.IsEnabled = ativo && sessao is not null && sessao.ExpiraEm > DateTimeOffset.UtcNow;
@@ -96,7 +100,7 @@ public partial class MainPage : ContentPage
             // Do not retain passwords. SecureStorage holds the validated identity/token for this device.
             await SecureStorage.Default.SetAsync(ChaveSessao, JsonSerializer.Serialize(nova));
             sessao = nova;
-            CarteiraLista.Children.Clear(); RoteirosLista.Children.Clear();
+            LimparCarteiraVisual();
             UsuarioLabel.Text = $"Vendedor: {user.Login}";
             SituacaoLabel.Text = "Acesso confirmado. Baixe sua carteira.";
             if (await local.Carregar(user.VendedorId.Value) is { } dados) Mostrar(dados);
@@ -104,11 +108,16 @@ public partial class MainPage : ContentPage
         catch (Exception) { SituacaoLabel.Text = "Não foi possível entrar. Confira a conexão e o endereço da API."; }
         finally { SenhaEntry.Text = ""; Habilitar(true); }
     }
+    void LimparCarteiraVisual()
+    {
+        CarteiraLista.Children.Clear();RoteirosLista.Children.Clear();
+        TotalClientesLabel.Text="0";TotalProdutosLabel.Text="0";TotalRoteirosLabel.Text="0";
+    }
     void LimparSessao()
     {
         sessao = null;
         SecureStorage.Default.Remove(ChaveSessao);
-        CarteiraLista.Children.Clear(); RoteirosLista.Children.Clear();
+        LimparCarteiraVisual();
         UsuarioLabel.Text = "";
         SenhaEntry.Text = "";
     }
@@ -145,15 +154,18 @@ public partial class MainPage : ContentPage
     }
     void Mostrar(PreparacaoDto dados)
     {
-        CarteiraLista.Children.Clear(); RoteirosLista.Children.Clear();
-        SituacaoLabel.Text = $"Dados baixados em {dados.AtualizadoEm.ToLocalTime():dd/MM/yyyy HH:mm}. Disponíveis sem conexão.";
-        foreach (var cliente in dados.Clientes.OrderBy(c => c.Nome)) CarteiraLista.Children.Add(new Label { Text = $"{cliente.Nome}\n{cliente.Endereco}", Padding = new Thickness(0, 6) });
-        if (dados.Clientes.Count == 0) CarteiraLista.Children.Add(new Label { Text = "Nenhum cliente ativo nesta carteira." });
-        foreach (var roteiro in dados.Roteiros.OrderBy(r => r.DiaSemana).ThenBy(r => r.Nome))
-        {
-            RoteirosLista.Children.Add(new Label { Text = $"{dias[roteiro.DiaSemana]} · {roteiro.Nome}", FontAttributes = FontAttributes.Bold });
-            foreach (var visita in roteiro.Visitas.OrderBy(v => v.Sequencia)) RoteirosLista.Children.Add(new Label { Text = $"{visita.Sequencia} — {visita.NomeCliente}" });
-        }
+        LimparCarteiraVisual();
+        TotalClientesLabel.Text=dados.Clientes.Count.ToString();
+        TotalProdutosLabel.Text=dados.Produtos.Count.ToString();
+        TotalRoteirosLabel.Text=dados.Roteiros.Count.ToString();
+        SituacaoLabel.Text=$"Carteira salva em {dados.AtualizadoEm.ToLocalTime():dd/MM/yyyy 'às' HH:mm}. Disponível sem conexão.";
+        foreach(var cliente in dados.Clientes.OrderBy(c=>c.Nome).Take(3))
+            CarteiraLista.Children.Add(TemaVenda.Cartao(TemaVenda.Titulo(cliente.Nome,16),TemaVenda.Legenda(cliente.Endereco)));
+        if(dados.Clientes.Count==0)CarteiraLista.Children.Add(TemaVenda.Vazio("Sua carteira está vazia","Os clientes ativos atribuídos ao vendedor aparecerão aqui após a atualização."));
+        else if(dados.Clientes.Count>3)CarteiraLista.Children.Add(TemaVenda.Legenda($"+ {dados.Clientes.Count-3} cliente(s). Abra a carteira para consultar todos."));
+        foreach(var roteiro in dados.Roteiros.OrderBy(r=>r.DiaSemana).ThenBy(r=>r.Nome))
+            RoteirosLista.Children.Add(TemaVenda.Cartao(TemaVenda.Etiqueta(dias[roteiro.DiaSemana]),TemaVenda.Titulo(roteiro.Nome,16),TemaVenda.Legenda($"{roteiro.Visitas.Count} visitas · sequência organizada pela distribuidora")));
+        if(dados.Roteiros.Count==0)RoteirosLista.Children.Add(TemaVenda.Legenda("Nenhum roteiro disponível neste download."));
     }
     async void AbrirTrabalho(object? sender, EventArgs e)
     {

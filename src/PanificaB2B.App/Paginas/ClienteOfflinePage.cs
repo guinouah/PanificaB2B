@@ -26,8 +26,13 @@ public sealed class ClienteOfflinePage : ContentPage
         territorio.SelectedIndex = cliente is null ? (territorio.Items.Count > 0 ? 0 : -1) : dados.Territorios.FindIndex(x => x.Id == cliente.TerritorioId);
         Cidades();
         if (cliente is not null) cidade.SelectedIndex = cidades.FindIndex(x => x.Id == cliente.CidadeId);
-        Content = new ScrollView { Content = new VerticalStackLayout { Padding = 20, Spacing = 12, Children = { InterfaceVenda.Texto("Novo cliente", true), InterfaceVenda.Texto("O cadastro fica pendente e será enviado antes dos pedidos deste cliente."), nome, documento, email, telefone, endereco, territorio, cidade,
-            InterfaceVenda.Botao("Salvar cliente pendente", Salvar) } } };
+        var corpo=TemaVenda.Corpo();
+        corpo.Children.Add(TemaVenda.Cabecalho("CARTEIRA","Cadastro de cliente","Registre uma nova panificadora durante a visita, mesmo sem conexão."));
+        corpo.Children.Add(TemaVenda.Cartao(TemaVenda.Titulo("Dados do estabelecimento",18),TemaVenda.Campo("Nome / razão social",nome),TemaVenda.Campo("Documento (opcional)",documento),TemaVenda.Campo("E-mail (opcional)",email),TemaVenda.Campo("Telefone (opcional)",telefone),TemaVenda.Campo("Endereço",endereco)));
+        corpo.Children.Add(TemaVenda.Cartao(TemaVenda.Titulo("Região de atendimento",18),TemaVenda.Campo("Território",territorio),TemaVenda.Campo("Cidade / UF",cidade)));
+        corpo.Children.Add(TemaVenda.Legenda("O cadastro fica no aparelho e será enviado antes dos pedidos vinculados a este cliente."));
+        corpo.Children.Add(InterfaceVenda.Botao("Salvar cliente no aparelho →",Salvar));
+        Content=TemaVenda.Pagina(corpo);
     }
     void Cidades()
     {

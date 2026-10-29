@@ -2,7 +2,7 @@
 
 Sistema acadêmico para distribuidora de produtos de panificação: .NET 10/C#, API ASP.NET Core, site MVC e aplicativo .NET MAUI. SQLite central separado do SQLite do vendedor. O site acessa o banco exclusivamente pela API.
 
-**Estado da validação:** resultados automatizados em VALIDACAO.md; teste manual completo da interface e do dispositivo ainda pendente.
+**Estado da validação:** resultados em VALIDACAO.md; interface do aplicativo conferida no Windows em 29/10/2026. O fluxo completo e a execução em Android ainda exigem teste manual.
 
 Especificação: [escopo](docs/ESPECIFICACAO.md), [lógica](docs/LOGICA-DO-SISTEMA.md) e [modelo de dados](docs/MODELO-DE-DADOS.md).
 
@@ -69,6 +69,10 @@ Os arquivos `.cmd` usam binários já compilados. `bin`, `obj`, bancos locais e 
 
 O site inclui navegação lateral conforme o perfil, painel de indicadores, busca nas listas de clientes e pedidos e ficha do cliente com dívida e últimas compras. Em **Pedidos e cortes**, abra um produto para conferir a demanda por cliente e o saldo válido. Em **Analisar**, informe as quantidades a atender: a tela mostra o corte e uma prévia do valor; o cálculo definitivo, a baixa e as parcelas são confirmados pela API em transação.
 
+### Interface do vendedor
+
+O aplicativo usa fundo claro e navegação em verde, com cartões para carteira, roteiro, dívida e últimas compras. O catálogo permite busca por produto/grupo, destaca promoções em amarelo e novidades em azul. A montagem do pedido oferece controles de quantidade, digitação decimal e prévia do total; **Conferir pedido** pede confirmação antes de deixar a operação pronta na fila. **Salvar rascunho** mantém o trabalho local e **Pedidos e envio** reúne as pendências para envio manual.
+
 ## Demonstração para apresentação
 
 Após criar o primeiro administrador, abra **Visão geral → Preparar dados para apresentação** e defina uma senha de pelo menos 12 caracteres. O botão adiciona registros fictícios identificados por **[DEMO]**: produtos, lotes, condição em 7/14 dias, roteiro, três clientes e pedidos de **5/8/9 unidades** de fermento com **15 disponíveis**. O atendimento de **2/6/7** é definido manualmente em **Pedidos e cortes**.
@@ -121,9 +125,9 @@ Para abrir o aplicativo Windows já compilado:
 .\testar-aplicativo.cmd
 ```
 
-No site, cadastre o vendedor comercial e depois crie seu acesso em **Acessos**, com perfil Vendedor e o vínculo correspondente. No aplicativo, use esse acesso e **Atualizar carteira, preços, histórico e pedidos**. O administrador utiliza o site. O binário Windows inclui as bibliotecas do Windows App SDK; o .NET 10 já existente continua sendo utilizado.
+No site, cadastre o vendedor comercial e depois crie seu acesso em **Acessos**, com perfil Vendedor e o vínculo correspondente. No aplicativo, use esse acesso e **Atualizar carteira, preços e pedidos**. O administrador utiliza o site. O binário Windows inclui as bibliotecas do Windows App SDK; o .NET 10 já existente continua sendo utilizado.
 
-No aplicativo, abra **Carteira, produtos e pedidos offline**, escolha o cliente e monte o pedido. O envio é feito em **Pedidos locais e envio (12h / 19h)**. Volte à tela inicial para baixar alterações e resultados do faturamento. Se a sessão expirar, entre novamente; o trabalho salvo fica conservado. Uma revogação remota só pode ser reconhecida pelo dispositivo quando ele voltar a se comunicar com a API; o cache offline não é uma consulta em tempo real.
+No aplicativo, abra **Abrir minha carteira**, escolha o cliente e monte o pedido. O envio é feito em **Pedidos e envio**. Volte à tela inicial para baixar alterações e resultados do faturamento. Se a sessão expirar, entre novamente; o trabalho salvo fica conservado. Uma revogação remota só pode ser reconhecida pelo dispositivo quando ele voltar a se comunicar com a API; o cache offline não é uma consulta em tempo real.
 
 Veja [GUIA-DE-TESTE.md](GUIA-DE-TESTE.md) para testar o fluxo completo e [VALIDACAO.md](VALIDACAO.md) para os resultados de verificação.
 
