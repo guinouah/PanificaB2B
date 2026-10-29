@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PanificaB2B.Contratos\PanificaB2B.Contratos.csproj" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
+    <Compile Include="..\..\src\PanificaB2B.App\Dados\CarteiraLocal.cs" Link="CarteiraLocal.cs" />
+    <Compile Include="..\..\src\PanificaB2B.App\Dados\TrabalhoLocal.cs" Link="TrabalhoLocal.cs" />
+    <Compile Include="..\..\src\PanificaB2B.Api\Seguranca\AcessoUsuario.cs" Link="AcessoUsuario.cs" />
+  </ItemGroup>
+</Project>

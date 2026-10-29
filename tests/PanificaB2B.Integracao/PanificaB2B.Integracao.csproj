@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PanificaB2B.Api\PanificaB2B.Api.csproj" />
+    <ProjectReference Include="..\..\src\PanificaB2B.Web\PanificaB2B.Web.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
+    <Compile Include="..\..\src\PanificaB2B.App\Dados\TrabalhoLocal.cs" Link="TrabalhoLocal.cs" />
+    <Compile Include="..\..\src\PanificaB2B.App\Dados\CarteiraLocal.cs" Link="CarteiraLocal.cs" />
+  </ItemGroup>
+</Project>
